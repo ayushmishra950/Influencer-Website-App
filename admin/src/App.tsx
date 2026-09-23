@@ -16,6 +16,9 @@ import { CategoriesPage } from '@/pages/Categories';
 import { PackagesPage } from '@/pages/Packages';
 import { InfluencerDetailPage } from '@/pages/InfluencerDetail';
 import { InfluencerFormPage } from '@/pages/InfluencerForm';
+import { ChangePasswordPage } from '@/pages/ChangePassword';
+import { ForgotPasswordPage } from '@/pages/ForgotPassword';
+import { ResetPasswordPage } from '@/pages/ResetPassword';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +53,8 @@ export default function App() {
               <NotificationProvider>
                 <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route element={<RequireAdmin />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="influencers" element={<InfluencersPage />} />
@@ -60,6 +65,7 @@ export default function App() {
                 <Route path="archived" element={<ArchivedPage />} />
                 <Route path="packages" element={<PackagesPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
+                <Route path="change-password" element={<ChangePasswordPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

@@ -32,6 +32,26 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+// Shared by the signed-in change and the forgot-password reset: same rules, same
+// mismatch message, so the two screens cannot drift apart.
+const passwordFields = {
+  password: z.string().min(8, 'Password must be at least 8 characters').max(72),
+  confirmPassword: z.string().min(1, 'Confirm your new password'),
+};
+const passwordsMatch = (d: { password: string; confirmPassword: string }) =>
+  d.password === d.confirmPassword;
+const mismatch = { message: 'Passwords do not match', path: ['confirmPassword'] };
+
+export const changePasswordSchema = z.object(passwordFields).refine(passwordsMatch, mismatch);
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Enter a valid email'),
+});
+
+export const resetPasswordSchema = z
+  .object({ token: z.string().min(1, 'Start the reset again'), ...passwordFields })
+  .refine(passwordsMatch, mismatch);
+
 /** What an influencer may change about themselves. `status` is deliberately absent. */
 export const updateOwnProfileSchema = z.object({
   name: z.string().trim().min(2).max(80).optional(),

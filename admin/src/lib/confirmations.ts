@@ -173,3 +173,10 @@ export const confirmDeletePackage = (title: string): ConfirmOptions => ({
   confirmLabel: 'Delete permanently',
   tone: 'danger',
 });
+
+export const confirmChangePassword = (): ConfirmOptions => ({
+  title: 'Change your password?',
+  description:
+    'You will sign in with the new password from now on. Sessions already open elsewhere keep working until their token expires.',
+  confirmLabel: 'Update password',
+});

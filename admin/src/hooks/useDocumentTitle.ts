@@ -12,6 +12,9 @@ const APP_NAME = 'Admin Panel';
 const ROUTE_TITLES: ReadonlyArray<{ pattern: RegExp; label: string }> = [
   { pattern: /^\/$/, label: 'Dashboard' },
   { pattern: /^\/login\/?$/, label: 'Sign In' },
+  { pattern: /^\/forgot-password\/?$/, label: 'Forgot Password' },
+  { pattern: /^\/reset-password\/?$/, label: 'Set New Password' },
+  { pattern: /^\/change-password\/?$/, label: 'Change Password' },
   { pattern: /^\/influencers\/new\/?$/, label: 'Add Influencer' },
   { pattern: /^\/influencers\/[^/]+\/edit\/?$/, label: 'Edit Influencer' },
   { pattern: /^\/influencers\/[^/]+\/?$/, label: 'Influencer Details' },

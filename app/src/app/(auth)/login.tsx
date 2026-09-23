@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { Banner, Button, Field, Txt } from '@/components/ui';
 import { Wordmark } from '@/components/Brand';
 import { errorMessage } from '@/lib/api';
@@ -13,6 +14,7 @@ export default function LoginScreen() {
   const { colors: Colors } = useTheme();
   const router = useRouter();
   const { login, revokedMessage, clearRevokedMessage } = useAuth();
+  const { notify } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +32,7 @@ export default function LoginScreen() {
       // Discover, not the profile: signing in lands you in the directory, which is
       // what the app is for. The profile is one tab away.
       router.replace('/(tabs)');
+      notify('Signed in successfully');
     } catch (err) {
       setError(errorMessage(err, 'Could not sign in'));
     } finally {
@@ -74,6 +77,14 @@ export default function LoginScreen() {
             onSubmitEditing={onSubmit}
             returnKeyType="go"
           />
+
+          {/* Directly under the field it belongs to: someone who has just mistyped a
+              password is looking here, not at the bottom of the screen. */}
+          <Link href="/(auth)/forgot-password" asChild>
+            <Pressable style={{ alignSelf: 'flex-end', marginTop: -Spacing.sm }}>
+              <Txt variant="small" color={Colors.violet400}>Forgot password?</Txt>
+            </Pressable>
+          </Link>
 
           {/* An admin ending the session takes priority over a stale form error. */}
           {revokedMessage ? (

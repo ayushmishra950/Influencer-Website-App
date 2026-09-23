@@ -117,6 +117,10 @@ export function Sidebar({ pendingCount, pendingPackages, open, onNavigate }: Sid
             <span className="dim truncate" style={{ fontSize: 11.5 }}>{user?.email}</span>
           </span>
         </div>
+        <NavLink to="/change-password" className="btn btn-subtle btn-block" style={{ justifyContent: 'flex-start' }}>
+          <Icon name="lock" size={16} />
+          Change password
+        </NavLink>
         <button className="btn btn-subtle btn-block" onClick={() => void signOut()} style={{ justifyContent: 'flex-start' }}>
           <Icon name="logout" size={16} />
           Sign out

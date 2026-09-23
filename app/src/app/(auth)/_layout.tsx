@@ -22,6 +22,12 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="login" options={{ title: 'Sign in' }} />
       <Stack.Screen name="register" options={{ title: 'Create account' }} />
+      <Stack.Screen name="forgot-password" options={{ title: 'Forgot password' }} />
+      {/* Going "back" here would return to an email step whose token is already spent. */}
+      <Stack.Screen
+        name="reset-password"
+        options={{ title: 'Set a new password', headerLeft: () => null }}
+      />
       {/* Registration is complete here; going "back" into the form would be wrong. */}
       <Stack.Screen name="pending" options={{ title: '', headerLeft: () => null }} />
     </Stack>

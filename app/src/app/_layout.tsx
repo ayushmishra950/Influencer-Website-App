@@ -7,6 +7,7 @@ import { BackButton } from '@/components/BackButton';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { ToastProvider } from '@/context/ToastContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 void SplashScreen.preventAutoHideAsync();
@@ -89,6 +90,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="creators" options={{ title: 'All creators' }} />
+        <Stack.Screen name="change-password" options={{ title: 'Change password' }} />
         <Stack.Screen
           name="about"
           options={{
@@ -117,11 +119,13 @@ function Shell() {
   const { colors } = useTheme();
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.ink1000 }}>
-      <AuthProvider>
-        <NotificationProvider>
-          <RootNavigator />
-        </NotificationProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <RootNavigator />
+          </NotificationProvider>
+        </AuthProvider>
+      </ToastProvider>
     </GestureHandlerRootView>
   );
 }

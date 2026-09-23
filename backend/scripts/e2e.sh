@@ -322,6 +322,64 @@ code -X PATCH "$API/api/admin/influencers/$LIVE_ID/restore" -H "$AUTH" >/dev/nul
 C=$(code "$API/api/public/influencers/$LIVE_ID/packages")
 check "restoring brings them back" 200 "$C"
 
+echo "── 12g. Change password (signed in) ──"
+INF_AUTH="Authorization: Bearer $INF_TOKEN"
+J='Content-Type: application/json'
+
+C=$(code -X POST "$API/api/auth/change-password" -H "$J" -H "$INF_AUTH" \
+  -d '{"password":"Switched@123","confirmPassword":"Nope@12345"}')
+check "mismatched confirmation is refused" "400" "$C"
+
+C=$(code -X POST "$API/api/auth/change-password" -H "$J" -H "$INF_AUTH" -d '{"password":"short","confirmPassword":"short"}')
+check "a short password is refused" "400" "$C"
+
+C=$(code -X POST "$API/api/auth/change-password" -H "$J" -d '{"password":"Switched@123","confirmPassword":"Switched@123"}')
+check "anonymous cannot change a password" "401" "$C"
+
+C=$(code -X POST "$API/api/auth/change-password" -H "$J" -H "$INF_AUTH" \
+  -d '{"password":"Switched@123","confirmPassword":"Switched@123"}')
+check "the owner can change their own" "200" "$C"
+
+C=$(code -X POST "$API/api/auth/login" -H "$J" -d '{"email":"rahul.sharma@example.com","password":"Creator@123"}')
+check "the old password stops working" "401" "$C"
+C=$(code -X POST "$API/api/auth/login" -H "$J" -d '{"email":"rahul.sharma@example.com","password":"Switched@123"}')
+check "the new password works" "200" "$C"
+
+echo "── 12h. Forgot password ──"
+C=$(code -X POST "$API/api/auth/forgot-password" -H "$J" -d '{"email":"nobody@example.com"}')
+check "an unknown address is refused" "404" "$C"
+
+C=$(code -X POST "$API/api/auth/forgot-password" -H "$J" -d '{"email":"not-an-email"}')
+check "a malformed address is refused" "400" "$C"
+
+C=$(code -X POST "$API/api/auth/forgot-password" -H "$J" -d '{"email":"rahul.sharma@example.com"}')
+RESET_TOKEN=$(jqv "$(cat /tmp/body.json)" data.token)
+check "a registered address returns a reset token" "200" "$C"
+[ -n "$RESET_TOKEN" ] && [ "$RESET_TOKEN" != "undefined" ] && T=yes || T=no
+check "the token is present" "yes" "$T"
+
+# The reset token is signed with the same secret as a session token, so this is the
+# check that stops it being handed straight back as a Bearer token.
+C=$(code "$API/api/auth/me" -H "Authorization: Bearer $RESET_TOKEN")
+check "a reset token cannot authenticate a session" "401" "$C"
+
+C=$(code -X POST "$API/api/auth/reset-password" -H "$J" -d '{"password":"Creator@123","confirmPassword":"Creator@123"}')
+check "reset without a token is refused" "400" "$C"
+
+C=$(code -X POST "$API/api/auth/reset-password" -H "$J" -d '{"token":"garbage","password":"Creator@123","confirmPassword":"Creator@123"}')
+check "reset with a forged token is refused" "401" "$C"
+
+C=$(code -X POST "$API/api/auth/reset-password" -H "$J" \
+  -d "{\"token\":\"$RESET_TOKEN\",\"password\":\"Creator@123\",\"confirmPassword\":\"Mismatch@99\"}")
+check "reset with a mismatched confirmation is refused" "400" "$C"
+
+C=$(code -X POST "$API/api/auth/reset-password" -H "$J" \
+  -d "{\"token\":\"$RESET_TOKEN\",\"password\":\"Creator@123\",\"confirmPassword\":\"Creator@123\"}")
+check "reset sets the new password" "200" "$C"
+
+C=$(code -X POST "$API/api/auth/login" -H "$J" -d '{"email":"rahul.sharma@example.com","password":"Creator@123"}')
+check "the reset password signs in" "200" "$C"
+
 # ---------------------------------------------------------------------------
 # Put the rows this suite mutated back the way it found them, so it can be run
 # again immediately. Without this, run #2 cannot find its pending influencer.

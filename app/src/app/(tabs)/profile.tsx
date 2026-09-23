@@ -280,6 +280,17 @@ export default function ProfileScreen() {
           </Card>
         </Pressable>
 
+        <Pressable
+          onPress={() => router.push('/change-password')}
+          style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+        >
+          <Card style={{ padding: Spacing.lg, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+            <Ionicons name="lock-closed-outline" size={20} color={Colors.violet400} />
+            <Txt variant="bodyStrong" style={{ flex: 1 }}>Change password</Txt>
+            <Ionicons name="chevron-forward" size={18} color={Colors.text3} />
+          </Card>
+        </Pressable>
+
         <Button label="Sign out" variant="danger" onPress={onSignOut} />
       </ScrollView>
 

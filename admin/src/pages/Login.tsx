@@ -1,11 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { errorMessage } from '@/lib/api';
-import { Logo } from '@/components/Logo';
 import { TextField } from '@/components/Field';
-import { Icon } from '@/components/Icon';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { AuthShell, FormError } from '@/components/AuthShell';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function LoginPage() {
@@ -33,34 +31,28 @@ export function LoginPage() {
   }
 
   return (
-    <div className="center" style={{ minHeight: '100vh', padding: 20, position: 'relative' }}>
-      {/* This page renders outside the dashboard shell, so it carries its own control. */}
-      <div style={{ position: 'absolute', top: 20, right: 20 }}>
-        <ThemeToggle />
-      </div>
+    <AuthShell
+      title="Admin sign in"
+      subtitle="Manage creator verification for the Aura network"
+      footer={
+        <p className="dim center" style={{ fontSize: 12, textAlign: 'center' }}>
+          Influencer accounts sign in through the mobile app.
+        </p>
+      }
+    >
+      <form className="card card-pad stack gap-4" onSubmit={onSubmit} noValidate>
+        <TextField
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="admin@aura.dev"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoFocus
+        />
 
-      <div className="stack gap-5 animate-in" style={{ width: '100%', maxWidth: 400 }}>
-        <div className="center stack gap-4">
-          <Logo size={44} withWordmark={false} />
-          <div className="stack gap-1" style={{ textAlign: 'center' }}>
-            <h1 style={{ fontSize: 24 }}>Admin sign in</h1>
-            <p className="muted" style={{ fontSize: 13.5 }}>
-              Manage creator verification for the Aura network
-            </p>
-          </div>
-        </div>
-
-        <form className="card card-pad stack gap-4" onSubmit={onSubmit} noValidate>
-          <TextField
-            label="Email"
-            type="email"
-            autoComplete="email"
-            placeholder="admin@aura.dev"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
+        <div className="stack gap-2">
           <TextField
             label="Password"
             type="password"
@@ -70,32 +62,20 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          {/* Directly under the field it belongs to: someone who has just mistyped a
+              password is looking here, not at the bottom of the card. */}
+          <Link to="/forgot-password" style={{ fontSize: 12.5, alignSelf: 'flex-end' }}>
+            Forgot password?
+          </Link>
+        </div>
 
-          {error && (
-            <div
-              className="row gap-2"
-              style={{
-                padding: '10px 12px', borderRadius: 'var(--r-md)',
-                background: 'var(--rose-bg)', color: 'var(--rose-400)',
-                border: '1px solid rgba(251,113,133,.25)', fontSize: 13,
-              }}
-              role="alert"
-            >
-              <Icon name="warning" size={15} />
-              <span>{error}</span>
-            </div>
-          )}
+        <FormError message={error} />
 
-          <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-            {busy && <span className="spinner" />}
-            {busy ? 'Signing in' : 'Sign in'}
-          </button>
-        </form>
-
-        <p className="dim center" style={{ fontSize: 12, textAlign: 'center' }}>
-          Influencer accounts sign in through the mobile app.
-        </p>
-      </div>
-    </div>
+        <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
+          {busy && <span className="spinner" />}
+          {busy ? 'Signing in' : 'Sign in'}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

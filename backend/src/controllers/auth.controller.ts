@@ -1,6 +1,6 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
-import { signToken } from '../utils/token.js';
+import { signResetToken, signToken, verifyResetToken } from '../utils/token.js';
 import { User } from '../models/User.js';
 import { Influencer } from '../models/Influencer.js';
 import { createInfluencerAccount } from '../utils/createInfluencerAccount.js';
@@ -97,6 +97,55 @@ export const me = asyncHandler(async (req, res) => {
 });
 
 /** Stateless JWT: the client discards the token. Present for a symmetric API surface. */
+/**
+ * Sets the signed-in account's own password. The model hashes on save, so the plain
+ * value is assigned and never stored as given.
+ */
+export const changePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user!._id).select('+password');
+  if (!user) throw ApiError.unauthorized();
+
+  user.password = req.body.password;
+  await user.save();
+
+  res.json({ success: true, message: 'Password updated' });
+});
+
+/**
+ * Step one of the reset: confirms the address and hands back a short-lived token that
+ * step two requires, so the password cannot be set without coming through here first.
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user || !user.isActive) {
+    throw ApiError.notFound('No account is registered with that email');
+  }
+
+  res.json({
+    success: true,
+    message: 'Account found',
+    data: { token: signResetToken(String(user._id)), email: user.email },
+  });
+});
+
+/** Step two: spends the token from step one and sets the new password. */
+export const resetPassword = asyncHandler(async (req, res) => {
+  let payload;
+  try {
+    payload = verifyResetToken(req.body.token);
+  } catch {
+    throw ApiError.unauthorized('This reset expired. Please start again.');
+  }
+
+  const user = await User.findById(payload.sub).select('+password');
+  if (!user || !user.isActive) throw ApiError.notFound('Account not found');
+
+  user.password = req.body.password;
+  await user.save();
+
+  res.json({ success: true, message: 'Password updated. Please sign in.' });
+});
+
 export const logout = asyncHandler(async (_req, res) => {
   res.json({ success: true, message: 'Logged out' });
 });
