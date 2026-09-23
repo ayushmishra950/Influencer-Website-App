@@ -83,6 +83,32 @@ cd backend && npm run create:admin -- --email you@example.com --password 'Secret
 
 Vite proxies `/api` to the backend, so there is one origin and no CORS in development.
 
+#### Serving the admin from the backend
+
+For a deploy there is no need to host the panel separately. Build it into the API:
+
+```bash
+cd backend && npm run build:admin
+```
+
+That runs the Vite build and copies `admin/dist` into `backend/public`. From then on the
+backend answers on a single origin:
+
+| Request | Handled by |
+|---|---|
+| `/api/*` | the API — an unknown path here is a **JSON 404**, never the HTML shell |
+| `/uploads/*` | uploaded images |
+| `/socket.io/*` | Socket.IO (attached to the HTTP server, ahead of Express) |
+| anything else | the admin panel, with `index.html` as the SPA fallback |
+
+`npm run build:all` does that and compiles the server, so `npm start` serves both halves
+on **http://localhost:5050**. Because the admin is built with an empty
+`VITE_API_BASE_URL`, every call it makes is relative and its socket falls back to
+`window.location.origin` — one origin, nothing host-specific baked into the bundle.
+
+`npm run dev` in `admin/` is still the way to *work* on the panel; the copy in
+`backend/public` is a build artifact and only refreshes when you rebuild.
+
 ### 3. Creator app
 
 ```bash

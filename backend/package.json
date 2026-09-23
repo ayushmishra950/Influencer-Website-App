@@ -15,7 +15,9 @@
     "test:e2e": "bash scripts/e2e.sh",
     "db:check": "tsx scripts/check-db.ts",
     "create:admin": "tsx scripts/create-admin.ts",
-    "test:realtime": "tsx scripts/realtime-test.ts"
+    "test:realtime": "tsx scripts/realtime-test.ts",
+    "build:admin": "tsx scripts/build-admin.ts",
+    "build:all": "npm run build:admin && npm run build"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
