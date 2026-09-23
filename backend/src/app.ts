@@ -65,17 +65,33 @@ export function createApp(): Application {
     /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
 
   app.use(
-    cors({
-      origin(origin, callback) {
-        // No Origin header: native apps, curl, server-to-server.
-        if (!origin) return callback(null, true);
-        if (!isProd && isLocalhost(origin)) return callback(null, true);
-        if (!env.clientOrigins.length || env.clientOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-        callback(new Error(`Origin ${origin} is not allowed by CORS`));
-      },
-      credentials: true,
+    cors((req, callback) => {
+      const origin = req.headers.origin;
+
+      // No Origin header: native apps, curl, server-to-server.
+      if (!origin) return callback(null, { origin: true, credentials: true });
+
+      // The panel this server hosts is same-origin, but Vite marks its bundle tags
+      // `crossorigin`, so the browser sends an Origin header for them anyway. Without
+      // this the server can refuse to serve its own assets whenever CLIENT_ORIGINS is
+      // set and happens not to list the host it is reachable on.
+      const self = `${req.protocol}://${req.get('host')}`;
+      if (origin === self) return callback(null, { origin: true, credentials: true });
+
+      if (!isProd && isLocalhost(origin)) {
+        return callback(null, { origin: true, credentials: true });
+      }
+      if (!env.clientOrigins.length || env.clientOrigins.includes(origin)) {
+        return callback(null, { origin: true, credentials: true });
+      }
+
+      // Answer without the CORS headers rather than throwing. Throwing turned every
+      // request from an unlisted origin into a 500 -- including stylesheets and
+      // scripts, which then never load at all. Omitting the headers is what CORS
+      // actually asks for: the browser blocks the read itself. Safe here because
+      // authentication rides on the Authorization header, not on cookies, so another
+      // site's page cannot make an authenticated request in the first place.
+      callback(null, { origin: false, credentials: false });
     }),
   );
 
