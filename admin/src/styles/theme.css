@@ -1,0 +1,160 @@
+/**
+ * Aura design tokens.
+ *
+ * The `--ink-*` scale is a SURFACE ELEVATION scale, not a fixed colour ramp:
+ * 1000 is the page itself and lower numbers sit progressively closer to the reader.
+ * In dark mode that means 1000 is near-black and raised surfaces get lighter; in light
+ * mode it inverts — 1000 is a soft grey and raised surfaces become white. Components
+ * therefore never need to know which theme is active.
+ *
+ * The active theme lives in `data-theme` on <html>, set before first paint by the
+ * inline script in index.html so the page never flashes the wrong colours.
+ */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* --- Surfaces --- */
+  --ink-1000: #060609;
+  --ink-950:  #0a0a10;
+  --ink-900:  #101018;
+  --ink-850:  #14141e;
+  --ink-800:  #191924;
+  --ink-750:  #1f1f2c;
+  --ink-700:  #262634;
+
+  --line:        #262633;
+  --line-strong: #33334a;
+
+  --input-bg:  #0a0a10;
+  --row-hover: rgba(255, 255, 255, 0.025);
+  --backdrop:  rgba(4, 4, 8, 0.72);
+
+  /* --- Brand --- */
+  --violet-300: #b9a5ff;
+  --violet-400: #9b7cff;
+  --violet-500: #7c5cfc;
+  --violet-600: #6344e8;
+  --violet-700: #4f34c4;
+
+  --gold-300: #f2d089;
+  --gold-400: #e8b84b;
+  --gold-500: #d19f2d;
+
+  /* --- Status --- */
+  --mint-400:  #34d399;
+  --mint-bg:   rgba(52, 211, 153, 0.12);
+  --amber-400: #fbbf24;
+  --amber-bg:  rgba(251, 191, 36, 0.12);
+  --rose-400:  #fb7185;
+  --rose-bg:   rgba(251, 113, 133, 0.12);
+  --slate-400: #94a3b8;
+  --slate-bg:  rgba(148, 163, 184, 0.12);
+  --violet-bg: rgba(124, 92, 252, 0.14);
+
+  /* --- Text --- */
+  --text:   #f4f4f7;
+  --text-2: #a8a8bd;
+  /* Lifted from #6f6f88, which measured 4.05:1 on the page background — under the
+     4.5:1 minimum for the small uppercase labels this token is used for. */
+  --text-3: #7e7e99;
+  --text-on-brand: #ffffff;
+
+  /* --- Depth: dark UI needs a light rim, not just a shadow --- */
+  --rim: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --glow-violet: 0 8px 28px rgba(124, 92, 252, 0.32);
+
+  /* Brand wash behind the page. */
+  --wash-1: rgba(124, 92, 252, 0.13);
+  --wash-2: rgba(232, 184, 75, 0.06);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* --- Surfaces: the elevation scale inverts --- */
+  --ink-1000: #f3f3f8;
+  --ink-950:  #ffffff;
+  --ink-900:  #ffffff;
+  --ink-850:  #ffffff;
+  --ink-800:  #f0f0f6;
+  --ink-750:  #e6e6f0;
+  --ink-700:  #d3d3e2;
+
+  --line:        #e5e5ee;
+  --line-strong: #c7c7d8;
+
+  /* Slightly off-white so an input still reads as recessed against a white card. */
+  --input-bg:  #fafafc;
+  --row-hover: rgba(15, 15, 40, 0.028);
+  --backdrop:  rgba(20, 20, 35, 0.45);
+
+  /* --- Brand: the mid tones stay, the light tints darken enough to read on white --- */
+  --violet-300: #5b3fd6;
+  --violet-400: #6344e8;
+  --violet-500: #7c5cfc;
+  --violet-600: #6344e8;
+  --violet-700: #4f34c4;
+
+  --gold-300: #a87f14;
+  --gold-400: #b8860b;
+  --gold-500: #96690a;
+
+  /* --- Status ---
+     These are label colours on a tinted chip, so they are darkened until each one
+     clears 4.5:1 against that chip. Measured, not eyeballed. */
+  --mint-400:  #0a7a52;
+  --mint-bg:   rgba(10, 122, 82, 0.10);
+  --amber-400: #8a5a00;
+  --amber-bg:  rgba(138, 90, 0, 0.10);
+  --rose-400:  #b81f3e;
+  --rose-bg:   rgba(184, 31, 62, 0.09);
+  --slate-400: #4f5b6d;
+  --slate-bg:  rgba(79, 91, 109, 0.10);
+  --violet-bg: rgba(124, 92, 252, 0.10);
+
+  /* --- Text ---
+     text-3 carries small uppercase labels (table headers), so it cannot be as
+     light as its dark-mode counterpart and still be readable. */
+  --text:   #14141d;
+  --text-2: #53536a;
+  --text-3: #66667d;
+  --text-on-brand: #ffffff;
+
+  /* --- Depth: no light rim on a light surface, and far softer shadows --- */
+  --rim: inset 0 0 0 0 transparent;
+  --shadow-sm: 0 1px 2px rgba(20, 20, 45, 0.06);
+  --shadow-md: 0 8px 24px rgba(20, 20, 45, 0.08);
+  --shadow-lg: 0 24px 60px rgba(20, 20, 45, 0.14);
+  --glow-violet: 0 8px 22px rgba(124, 92, 252, 0.28);
+
+  --wash-1: rgba(124, 92, 252, 0.10);
+  --wash-2: rgba(232, 184, 75, 0.10);
+}
+
+:root {
+  /* --- Type --- */
+  --font-display: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* --- Shape --- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* Starts at violet-600: white on violet-500 measures 4.38:1, under AA for button text. */
+  --grad-brand: linear-gradient(135deg, var(--violet-600) 0%, var(--violet-700) 100%);
+  --grad-gold: linear-gradient(135deg, var(--gold-300) 0%, var(--gold-500) 100%);
+  --grad-surface: linear-gradient(180deg, var(--ink-850) 0%, var(--ink-900) 100%);
+
+  --sidebar-w: 250px;
+  --topbar-h: 60px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+}

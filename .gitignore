@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.expo/
+.DS_Store
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+backend/node_modules/
+admin/node_modules/
+backend/.env
+admin/.env
+
+
