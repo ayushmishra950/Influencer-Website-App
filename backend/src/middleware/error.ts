@@ -40,6 +40,13 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
   if (status >= 500) console.error('[error]', err);
 
+  // Never let a failure inherit a cache header. express.static sets
+  // "max-age=31536000, immutable" *before* it streams a file, so a send that fails
+  // part-way (a file briefly missing during a deploy, say) would otherwise hand the
+  // browser a 500 it keeps for a year -- and the page stays broken long after the
+  // server is healthy again, with a cache clear the only way out.
+  res.setHeader('Cache-Control', 'no-store');
+
   res.status(status).json({
     success: false,
     message,
