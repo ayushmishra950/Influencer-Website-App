@@ -109,6 +109,15 @@ on **http://localhost:5050**. Because the admin is built with an empty
 `npm run dev` in `admin/` is still the way to *work* on the panel; the copy in
 `backend/public` is a build artifact and only refreshes when you rebuild.
 
+**Pointing the build at a fixed API origin.** `admin/.env.production` sets
+`VITE_API_BASE_URL` for `vite build` only, so local development keeps using the proxy.
+Note that an absolute origin is baked into the bundle: it matches CSP's `'self'` only
+while the panel is served from that exact host, so if you later serve it from anywhere
+else — a custom domain, or the backend running locally — add that API origin to
+`CLIENT_ORIGINS`, which the `connect-src` policy is built from. Leaving
+`VITE_API_BASE_URL` empty avoids the whole question, since relative URLs follow
+whatever host is serving the panel.
+
 ### 3. Creator app
 
 ```bash

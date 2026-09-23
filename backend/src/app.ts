@@ -48,6 +48,11 @@ export function createApp(): Application {
           'style-src': ["'self'", 'https://fonts.googleapis.com', "'unsafe-inline'"],
           'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
           'script-src': ["'self'", ...inlineScriptHashes(adminIndex)],
+          // 'self' covers the normal case, where the admin bundle calls this same
+          // origin. A bundle built with an absolute VITE_API_BASE_URL only matches
+          // 'self' while it happens to be served from that exact host, so the
+          // allowlist is extended with CLIENT_ORIGINS for the times it is not.
+          'connect-src': ["'self'", ...env.clientOrigins],
         },
       },
     }),
