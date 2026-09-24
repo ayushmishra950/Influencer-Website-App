@@ -279,8 +279,90 @@ a {
 }
 
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
   color: var(--hero-text);
+}
+
+/* Two soft lights and a faint grid, layered over the gradient. A flat gradient reads
+   as a placeholder; this reads as a surface. Both layers are pure CSS — no image to
+   download, and nothing to go stale. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: -2;
+  background:
+    radial-gradient(45% 45% at 18% 12%, rgba(255, 255, 255, 0.28), transparent 70%),
+    radial-gradient(40% 40% at 88% 78%, rgba(232, 184, 75, 0.22), transparent 70%);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 56px 56px;
+  /* Fades out before the edges so the grid never ends in a hard line. */
+  mask-image: radial-gradient(80% 65% at 50% 40%, #000 30%, transparent 100%);
+}
+
+/* A card that should catch the eye before its neighbours. */
+.card-feature {
+  position: relative;
+  background:
+    linear-gradient(var(--ink-950), var(--ink-950)) padding-box,
+    linear-gradient(135deg, var(--violet-500), var(--gold-400)) border-box;
+  border: 1px solid transparent;
+  border-radius: 16px;
+}
+
+/**
+ * For anything pulled up over the hero with a negative margin.
+ *
+ * The hero is `position: relative` so it can carry its glow and grid layers, and a
+ * positioned element paints above static content regardless of DOM order — which put
+ * the hero on top of the very cards that were meant to overlap it. Giving them their
+ * own positioned context puts them back in front.
+ */
+.over-hero {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--violet-400);
+}
+
+/* Marquee: the track holds the list twice, so the halfway point is seamless. */
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 12px;
+  animation: marquee 38s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
 }
 
 .prose-body {

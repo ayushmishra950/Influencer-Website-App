@@ -72,9 +72,14 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     page: first(resolved.page) ?? '1',
   };
 
+  // The country is usually the only one, so default to it rather than making someone
+  // pick a country before the state list will populate at all.
+  const countries = await fetchLocationOptions();
+  const country = query.country ?? (countries.countries.length === 1 ? countries.countries[0] : undefined);
+
   const [categories, locations, preview] = await Promise.all([
     fetchCategories(),
-    fetchLocationOptions(),
+    fetchLocationOptions(country, query.state),
     // Always the unfiltered top of the list: this is the public preview, and it has to
     // be identical for every visitor so the cached page is the one a crawler gets.
     fetchCreators({ limit: PREVIEW_COUNT, sort: 'recent' }),

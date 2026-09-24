@@ -78,8 +78,25 @@ export async function fetchCategories(): Promise<Category[]> {
   return getOr<Category[]>('/api/public/categories', []);
 }
 
-export async function fetchLocationOptions(): Promise<LocationOptions> {
-  return getOr<LocationOptions>('/api/public/locations', { countries: [], states: [], cities: [] });
+/**
+ * Location options for the filter bar.
+ *
+ * The endpoint is deliberately chained: states only come back for a given country, and
+ * cities only for a given country + state. Calling it bare returns countries and two
+ * empty lists — which is what silently emptied the state and city dropdowns.
+ */
+export async function fetchLocationOptions(
+  country?: string,
+  state?: string,
+): Promise<LocationOptions> {
+  const params = new URLSearchParams();
+  if (country) params.set('country', country);
+  if (country && state) params.set('state', state);
+  const query = params.toString();
+  return getOr<LocationOptions>(
+    `/api/public/locations${query ? `?${query}` : ''}`,
+    { countries: [], states: [], cities: [] },
+  );
 }
 
 const OBJECT_ID = /^[0-9a-f]{24}$/i;

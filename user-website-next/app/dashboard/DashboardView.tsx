@@ -147,7 +147,7 @@ export function DashboardView({ stats, recent }: Props) {
 
         {/* The one thing a creator opens this page to check. */}
         <section
-          className="-mt-7 rounded-2xl border p-5"
+          className="over-hero -mt-7 rounded-2xl border p-5"
           style={{ background: 'var(--ink-950)', borderColor: `color-mix(in srgb, ${status.tone} 40%, transparent)` }}
         >
           <div className="flex flex-wrap items-center gap-3">

@@ -4,7 +4,11 @@ import { CreatorCard } from '@/components/CreatorCard';
 import { JsonLd } from '@/components/JsonLd';
 import { RedirectSignedIn } from '@/components/RedirectSignedIn';
 import { Avatar } from '@/components/Avatar';
-import { fetchCategories, fetchLocationOptions, fetchStats } from '@/lib/api';
+import { EnquiryForm } from '@/components/EnquiryForm';
+import { ReachEstimator } from '@/components/ReachEstimator';
+import { StickyCta } from '@/components/StickyCta';
+import { NicheMarquee } from '@/components/NicheMarquee';
+import { fetchCategories, fetchCreators, fetchStats } from '@/lib/api';
 import { pluralize } from '@/lib/format';
 import { pageOpenGraph } from '@/lib/seo';
 import { faqSchema, organizationSchema, websiteSchema } from '@/lib/structured-data';
@@ -32,6 +36,65 @@ const PROMISES = [
   {
     title: 'All their channels in one place',
     body: 'Instagram and YouTube on a single profile, instead of handles stitched together from three different messages.',
+  },
+] as const;
+
+/**
+ * Campaign shapes a brand can actually run through the directory.
+ *
+ * Illustrative, and written as such — these are formats, not case studies. Inventing
+ * named clients and results would make the page feel more finished and be a lie.
+ */
+const CAMPAIGN_TYPES = [
+  {
+    title: 'Barter collaborations',
+    body: 'Send product, get content. Works best with nano and micro creators who are building a portfolio.',
+    meta: 'Product cost only',
+  },
+  {
+    title: 'Paid short-form',
+    body: 'A reel or a short, scripted and shot by the creator, at the rate published on their profile.',
+    meta: 'Per-post pricing',
+  },
+  {
+    title: 'UGC for your own channels',
+    body: 'Creator-made footage you run as ads. No posting on their handle, so usage rights are the whole negotiation.',
+    meta: 'Licensed content',
+  },
+  {
+    title: 'Story sets',
+    body: 'A few connected stories with a link. Traffic rather than reach — and the cheapest thing to test with.',
+    meta: 'Same-week turnaround',
+  },
+  {
+    title: 'Long-form integrations',
+    body: 'A segment inside a longer video, or a whole video built around the product.',
+    meta: 'Highest intent',
+  },
+  {
+    title: 'City-led campaigns',
+    body: 'Shortlist by city when the campaign is local — a store opening, a regional launch, an event.',
+    meta: 'Filter by location',
+  },
+] as const;
+
+/** Written for the creator, not the brand — this is the half of the page they read. */
+const FOR_CREATORS = [
+  {
+    title: 'You set the price',
+    body: 'Publish what you charge for a reel, a story set, a video. Brands see it before they contact you, so nobody opens with "what\u2019s your best rate?"',
+  },
+  {
+    title: 'Verified means something here',
+    body: 'A person checks every account before it goes live. Because nobody can list themselves, being listed is a signal on its own.',
+  },
+  {
+    title: 'No commission, ever',
+    body: 'Brands reach you through your own channels and you agree terms directly. Aura does not sit in the middle of the deal or take a cut.',
+  },
+  {
+    title: 'Free, and yours to edit',
+    body: 'Change your bio, photo, niche, city and rates whenever you like. Updates appear in the directory immediately.',
   },
 ] as const;
 
@@ -107,11 +170,15 @@ const FAQ = [
 const TOP_COUNT = 5;
 
 export default async function HomePage() {
-  const [stats, categories, locations] = await Promise.all([
+  const [stats, categories, everyone] = await Promise.all([
     fetchStats(),
     fetchCategories(),
-    fetchLocationOptions(),
+    // The locations endpoint is chained (a country gives states, a state gives cities),
+    // so it cannot hand back every city in one call. The creators themselves can.
+    fetchCreators({ limit: 100, sort: 'recent' }),
   ]);
+
+  const cities = [...new Set(everyone.data.map((c) => c.location?.city).filter(Boolean))].sort();
 
   const spotlight = (stats?.spotlight ?? []).slice(0, TOP_COUNT);
   // An empty category opens onto an empty list, so it is not offered.
@@ -128,15 +195,47 @@ export default async function HomePage() {
 
       <section className="hero">
         <div className="mx-auto max-w-6xl px-5 py-16 text-center sm:py-24">
-          <h1 className="mx-auto max-w-3xl text-[34px] leading-[1.15] sm:text-[52px]">
-            Find creators worth working with
+          <p
+            className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[12.5px] font-semibold"
+            style={{ background: 'var(--hero-scrim)', borderColor: 'var(--hero-border)', color: 'var(--hero-text)' }}
+          >
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: 'var(--gold-400)' }}
+              aria-hidden="true"
+            />
+            Every profile reviewed by a person
+          </p>
+
+          <h1 className="mx-auto max-w-4xl text-[34px] leading-[1.12] sm:text-[54px]">
+            Run influencer campaigns with creators you can{' '}
+            <span style={{ color: 'var(--gold-300)' }}>actually verify</span>
           </h1>
           <p
-            className="mx-auto mt-5 max-w-xl text-[15.5px] leading-[1.7] sm:text-[17px]"
+            className="mx-auto mt-5 max-w-2xl text-[15.5px] leading-[1.7] sm:text-[17px]"
             style={{ color: 'var(--hero-muted)' }}
           >
-            A verified directory of content creators, reviewed one by one before they go live.
+            {stats
+              ? `${stats.totalCreators} verified creators across ${stats.totalCategories} niches and ${stats.totalCities} cities — with their rates published on their own profiles.`
+              : 'A verified directory of content creators, reviewed one by one before they go live.'}
           </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href="#enquiry"
+              className="btn h-12 px-6 text-[15px]"
+              style={{ background: 'var(--hero-plate)', color: 'var(--hero-on-plate)' }}
+            >
+              Get a creator shortlist
+            </Link>
+            <Link
+              href="/creators"
+              className="btn h-12 px-6 text-[15px]"
+              style={{ background: 'var(--hero-scrim)', color: 'var(--hero-text)', borderColor: 'var(--hero-border)' }}
+            >
+              Browse the directory
+            </Link>
+          </div>
 
           {spotlight.length > 0 && (
             <div className="mt-10 flex flex-col items-center gap-3">
@@ -147,12 +246,11 @@ export default async function HomePage() {
                   </span>
                 ))}
               </div>
-              {!!stats && (
-                <p className="text-[13px]" style={{ color: 'var(--hero-muted)' }}>
-                  {pluralize(stats.totalCreators, 'verified creator')} across{' '}
-                  {pluralize(stats.totalCities, 'city', 'cities')}
-                </p>
-              )}
+              {/* The subcopy above already gives the counts; this line names what the
+                  faces are, instead of repeating the same sentence twice. */}
+              <p className="text-[13px]" style={{ color: 'var(--hero-muted)' }}>
+                Recently verified on Aura
+              </p>
             </div>
           )}
         </div>
@@ -161,7 +259,7 @@ export default async function HomePage() {
       {/* A band of air so the first line of content does not touch the violet. */}
       <div className="mx-auto max-w-6xl px-5">
         {!!stats && (
-          <div className="-mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="over-hero -mt-8 grid grid-cols-3 gap-3 sm:gap-4">
             {[
               { value: stats.totalCreators, label: 'Verified creators' },
               { value: stats.totalCategories, label: 'Content niches' },
@@ -177,7 +275,12 @@ export default async function HomePage() {
           </div>
         )}
 
+        <div className="mt-10">
+          <NicheMarquee categories={categories} />
+        </div>
+
         <section className="mt-16" aria-labelledby="why">
+          <p className="eyebrow">For brands</p>
           <h2 id="why" className="text-[24px] sm:text-[28px]">Why brands use Aura</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {PROMISES.map((promise) => (
@@ -186,6 +289,39 @@ export default async function HomePage() {
                 <p className="prose-body mt-2 text-[13.5px]">{promise.body}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-16" aria-labelledby="campaigns">
+          <p className="eyebrow">Formats</p>
+          <h2 id="campaigns" className="text-[24px] sm:text-[28px]">Campaigns you can run</h2>
+          <p className="mt-1 text-[13.5px]" style={{ color: 'var(--text-3)' }}>
+            Formats brands brief most often — pick the shape, then shortlist for it
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CAMPAIGN_TYPES.map((item) => (
+              <article key={item.title} className="card card-hover p-5">
+                <span
+                  className="chip"
+                  style={{ background: 'var(--violet-bg)', color: 'var(--violet-400)' }}
+                >
+                  {item.meta}
+                </span>
+                <h3 className="mt-3 text-[16px] font-bold">{item.title}</h3>
+                <p className="prose-body mt-2 text-[13.5px]">{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-16" aria-labelledby="estimate">
+          <p className="eyebrow">Planning</p>
+          <h2 id="estimate" className="text-[24px] sm:text-[28px]">Estimate your campaign</h2>
+          <p className="mt-1 text-[13.5px]" style={{ color: 'var(--text-3)' }}>
+            A planning range before you talk to anyone
+          </p>
+          <div className="mt-6">
+            <ReachEstimator />
           </div>
         </section>
 
@@ -269,7 +405,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {locations.cities.length > 0 && (
+        {cities.length > 0 && (
           <section className="card mt-16 p-6 sm:p-8" aria-labelledby="cities">
             <h2 id="cities" className="text-[20px]">Cities covered</h2>
             <p className="prose-body mt-1.5 text-[13.5px]">
@@ -278,7 +414,7 @@ export default async function HomePage() {
             {/* Plain text, not links: a per-city URL would be a filtered listing, and
                 those are deliberately kept out of the index. */}
             <ul className="mt-4 flex flex-wrap gap-2">
-              {locations.cities.map((city) => (
+              {cities.map((city) => (
                 <li
                   key={city}
                   className="chip"
@@ -303,18 +439,104 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="card mt-16 flex flex-col items-center gap-4 p-8 text-center sm:p-12">
-          <h2 className="text-[24px] sm:text-[28px]">Are you a creator?</h2>
-          <p className="prose-body max-w-lg text-[14.5px]">
-            Register with your niche, city and social accounts. Our team checks them, and once
-            you are approved brands can find you here.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/register" className="btn btn-primary">Join as a creator</Link>
-            <Link href="/about" className="btn btn-ghost">How it works</Link>
+        <section className="mt-16 scroll-mt-24" id="enquiry" aria-labelledby="enquiry-heading">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,360px)_1fr] lg:gap-12">
+            <div>
+              <h2 id="enquiry-heading" className="text-[24px] sm:text-[30px]">
+                Tell us what you are planning
+              </h2>
+              <p className="prose-body mt-3 text-[14.5px]">
+                Share the brief and we will come back with a shortlist of verified creators
+                who fit the niche, the city and the budget — not a list of everyone we have.
+              </p>
+
+              <ul className="mt-6 grid gap-3">
+                {[
+                  'Only reviewed profiles, never self-listed accounts',
+                  'Rates published by the creator, on their own profile',
+                  'You deal with the creator directly — no commission',
+                ].map((line) => (
+                  <li key={line} className="flex items-start gap-2.5 text-[13.5px]" style={{ color: 'var(--text-2)' }}>
+                    <span
+                      className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
+                      style={{ background: 'var(--mint-bg)', color: 'var(--mint-400)' }}
+                      aria-hidden="true"
+                    >
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    </span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <EnquiryForm />
+          </div>
+        </section>
+
+        {/* The creator half of the page. Given its own full-width band so it reads as a
+            destination rather than a footnote under the brand pitch. */}
+        <section className="mt-20" aria-labelledby="creators-heading">
+          <div className="card-feature overflow-hidden">
+            <div className="hero px-6 py-12 text-center sm:px-10 sm:py-16">
+              <p className="eyebrow" style={{ color: 'var(--gold-300)' }}>For creators</p>
+              <h2 id="creators-heading" className="mx-auto mt-3 max-w-2xl text-[27px] leading-[1.15] sm:text-[38px]">
+                Get found by brands{' '}
+                <span style={{ color: 'var(--gold-300)' }}>without chasing them</span>
+              </h2>
+              <p
+                className="mx-auto mt-4 max-w-xl text-[15px] leading-[1.7]"
+                style={{ color: 'var(--hero-muted)' }}
+              >
+                List your niche, your city and what you charge. Brands browsing Aura find you
+                with the price already on the table.
+              </p>
+
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/register"
+                  className="btn h-12 px-6 text-[15px]"
+                  style={{ background: 'var(--hero-plate)', color: 'var(--hero-on-plate)' }}
+                >
+                  Create your profile — free
+                </Link>
+                <Link
+                  href="/about"
+                  className="btn h-12 px-6 text-[15px]"
+                  style={{ background: 'var(--hero-scrim)', color: 'var(--hero-text)', borderColor: 'var(--hero-border)' }}
+                >
+                  How approval works
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-px sm:grid-cols-2" style={{ background: 'var(--line)' }}>
+              {FOR_CREATORS.map((item) => (
+                <div key={item.title} className="p-6" style={{ background: 'var(--ink-950)' }}>
+                  <h3 className="text-[16px] font-bold">{item.title}</h3>
+                  <p className="prose-body mt-2 text-[13.5px]">{item.body}</p>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-t px-6 py-5 text-center text-[13px]"
+              style={{ background: 'var(--ink-950)', color: 'var(--text-3)' }}
+            >
+              <span>Free to join</span>
+              <span aria-hidden="true">·</span>
+              <span>No commission on your deals</span>
+              <span aria-hidden="true">·</span>
+              <span>Reviewed by a person, not a bot</span>
+            </div>
           </div>
         </section>
       </div>
+
+      {/* Sits above the footer, and gives the page a persistent way to act on. */}
+      <StickyCta />
     </>
   );
 }
