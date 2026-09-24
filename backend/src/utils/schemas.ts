@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { STATUS_VALUES } from '../config/constants.js';
+import { ENQUIRY_STATUS_VALUES, STATUS_VALUES } from '../config/constants.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 const handle = z.string().trim().max(120).optional().default('');
@@ -177,3 +177,42 @@ export const notificationListQuerySchema = z.object({
 export type NotificationListQuery = z.infer<typeof notificationListQuerySchema>;
 
 export type SortKey = PublicListQuery['sort'];
+
+/**
+ * A campaign enquiry from the public site.
+ *
+ * `who` and `budget` are the labels the form offered, kept as bounded strings rather
+ * than an enum: the marketing copy on that page will change, and an enum here would
+ * start rejecting real enquiries the day someone edits a label. Everything a person
+ * typed is length-capped, and the model caps it again.
+ */
+export const enquiryInputSchema = z.object({
+  who: z.string().trim().min(1, 'Tell us who you are').max(40),
+  budget: z.string().trim().max(40).optional().default(''),
+  name: z.string().trim().min(2, 'Enter your full name').max(80),
+  email: z.string().trim().toLowerCase().email('Enter a valid work email'),
+  phone: z.string().trim().min(6, 'Enter a phone number we can reach you on').max(20),
+  company: z.string().trim().min(1, 'Which brand or company is this for?').max(120),
+  website: z.string().trim().max(200).optional().default(''),
+});
+
+export const adminEnquiryListQuerySchema = z.object({
+  ...pagination,
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  status: z.enum([...ENQUIRY_STATUS_VALUES, 'all']).optional().default('all'),
+  q: z.string().trim().max(120).optional(),
+});
+
+/** What an admin may change about an enquiry. The sender's own details are read-only. */
+export const enquiryUpdateSchema = z
+  .object({
+    status: z.enum(ENQUIRY_STATUS_VALUES).optional(),
+    note: z.string().trim().max(600).optional(),
+  })
+  .refine((d) => d.status !== undefined || d.note !== undefined, {
+    message: 'Nothing to update',
+  });
+
+export type EnquiryInput = z.infer<typeof enquiryInputSchema>;
+export type AdminEnquiryListQuery = z.infer<typeof adminEnquiryListQuerySchema>;
+export type EnquiryUpdateInput = z.infer<typeof enquiryUpdateSchema>;

@@ -18,6 +18,11 @@ import {
   updateInfluencer,
 } from '../controllers/admin.controller.js';
 import {
+  deleteEnquiry,
+  listEnquiries,
+  updateEnquiry,
+} from '../controllers/enquiry.controller.js';
+import {
   createCategory,
   deleteCategory,
   listCategories,
@@ -29,6 +34,7 @@ import { uploadAvatar } from '../middleware/upload.js';
 import { uploadProfileImage } from '../controllers/influencer.controller.js';
 import {
   adminCreateInfluencerSchema,
+  adminEnquiryListQuerySchema,
   adminListQuerySchema,
   adminLocationsQuerySchema,
   adminPackageListQuerySchema,
@@ -36,6 +42,7 @@ import {
   bulkSchema,
   categoryInputSchema,
   categoryListQuerySchema,
+  enquiryUpdateSchema,
   idParamSchema,
   rejectSchema,
 } from '../utils/schemas.js';
@@ -92,3 +99,14 @@ adminRouter.patch(
   rejectPackage,
 );
 adminRouter.delete('/packages/:id', validate(idParamSchema, 'params'), deletePackage);
+
+// Campaign enquiries from the public website. Read, annotate, move along or drop --
+// they are never created here, only by the form.
+adminRouter.get('/enquiries', validate(adminEnquiryListQuerySchema, 'query'), listEnquiries);
+adminRouter.patch(
+  '/enquiries/:id',
+  validate(idParamSchema, 'params'),
+  validate(enquiryUpdateSchema),
+  updateEnquiry,
+);
+adminRouter.delete('/enquiries/:id', validate(idParamSchema, 'params'), deleteEnquiry);

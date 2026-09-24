@@ -22,6 +22,7 @@ const ROUTE_TITLES: ReadonlyArray<{ pattern: RegExp; label: string }> = [
   { pattern: /^\/review\/?$/, label: 'Review Queue' },
   { pattern: /^\/archived\/?$/, label: 'Archived' },
   { pattern: /^\/packages\/?$/, label: 'Packages' },
+  { pattern: /^\/enquiries\/?$/, label: 'Enquiries' },
   { pattern: /^\/categories\/?$/, label: 'Categories' },
 ];
 

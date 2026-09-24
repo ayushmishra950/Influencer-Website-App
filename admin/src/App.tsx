@@ -14,6 +14,7 @@ import { ReviewQueuePage } from '@/pages/ReviewQueue';
 import { ArchivedPage } from '@/pages/Archived';
 import { CategoriesPage } from '@/pages/Categories';
 import { PackagesPage } from '@/pages/Packages';
+import { EnquiriesPage } from '@/pages/Enquiries';
 import { InfluencerDetailPage } from '@/pages/InfluencerDetail';
 import { InfluencerFormPage } from '@/pages/InfluencerForm';
 import { ChangePasswordPage } from '@/pages/ChangePassword';
@@ -64,6 +65,7 @@ export default function App() {
                 <Route path="review" element={<ReviewQueuePage />} />
                 <Route path="archived" element={<ArchivedPage />} />
                 <Route path="packages" element={<PackagesPage />} />
+                <Route path="enquiries" element={<EnquiriesPage />} />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="change-password" element={<ChangePasswordPage />} />
                 </Route>

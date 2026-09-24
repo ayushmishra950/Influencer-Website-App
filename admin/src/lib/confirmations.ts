@@ -180,3 +180,11 @@ export const confirmChangePassword = (): ConfirmOptions => ({
     'You will sign in with the new password from now on. Sessions already open elsewhere keep working until their token expires.',
   confirmLabel: 'Update password',
 });
+
+export const confirmDeleteEnquiry = (name: string, company: string): ConfirmOptions => ({
+  title: 'Delete this enquiry?',
+  description: `${name}${company ? ` from ${company}` : ''} and their contact details are removed for good. This cannot be undone.`,
+  confirmLabel: 'Delete permanently',
+  tone: 'danger',
+  note: 'Mark it Closed instead if you only want it out of the way — closed enquiries stay searchable.',
+});

@@ -1,4 +1,6 @@
 export type Status = 'pending' | 'approved' | 'rejected';
+/** An enquiry is not approved or rejected -- it is contacted or closed. */
+export type EnquiryStatus = 'new' | 'contacted' | 'closed';
 export type Role = 'admin' | 'influencer';
 
 export interface Category {
@@ -75,6 +77,7 @@ export interface Stats {
   rejected: number;
   archived: number;
   pendingPackages: number;
+  newEnquiries: number;
   recent: RecentInfluencer[];
 }
 
@@ -112,3 +115,33 @@ export interface InfluencerFilters {
 }
 
 export type BulkAction = 'approve' | 'reject' | 'archive' | 'restore' | 'delete';
+
+/**
+ * A campaign enquiry from the public website.
+ *
+ * Not a user: whoever filled the form in is a brand, so their contact details live on
+ * the record itself. Only `status` and `note` are ours to change.
+ */
+export interface Enquiry {
+  _id: string;
+  who: string;
+  budget: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  website: string;
+  status: EnquiryStatus;
+  note: string;
+  handledBy: { _id: string; name: string } | null;
+  handledAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnquiryFilters {
+  status: EnquiryStatus | 'all';
+  q: string;
+  page: number;
+  limit: number;
+}

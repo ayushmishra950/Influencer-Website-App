@@ -5,9 +5,10 @@ import { Influencer, type IInfluencer } from '../models/Influencer.js';
 import { Package, type IPackage } from '../models/Package.js';
 import { User } from '../models/User.js';
 import { Category } from '../models/Category.js';
+import { Enquiry } from '../models/Enquiry.js';
 import { getQuery } from '../middleware/validate.js';
 import { directorySort } from '../utils/sort.js';
-import { CREATED_BY, STATUS } from '../config/constants.js';
+import { CREATED_BY, ENQUIRY_STATUS, STATUS } from '../config/constants.js';
 import { createInfluencerAccount } from '../utils/createInfluencerAccount.js';
 import { notifyInfluencer, notifyPackageReviewed, revokeSession } from '../services/notifications.js';
 import { notifyPackageChanged } from '../realtime/socket.js';
@@ -26,7 +27,7 @@ const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]
 
 /** Dashboard counters. One grouped pass instead of five separate counts. */
 export const getStats = asyncHandler(async (_req, res) => {
-  const [byStatus, archived, total, recent, pendingPackages] = await Promise.all([
+  const [byStatus, archived, total, recent, pendingPackages, newEnquiries] = await Promise.all([
     Influencer.aggregate<{ _id: string; count: number }>([
       { $match: { isArchived: false } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
@@ -40,6 +41,7 @@ export const getStats = asyncHandler(async (_req, res) => {
       .limit(6)
       .lean(),
     Package.countDocuments({ status: STATUS.PENDING }),
+    Enquiry.countDocuments({ status: ENQUIRY_STATUS.NEW }),
   ]);
 
   const counts = Object.fromEntries(byStatus.map((row) => [row._id, row.count]));
@@ -54,6 +56,7 @@ export const getStats = asyncHandler(async (_req, res) => {
       archived,
       recent,
       pendingPackages,
+      newEnquiries,
     },
   });
 });

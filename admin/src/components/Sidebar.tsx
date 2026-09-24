@@ -18,11 +18,12 @@ interface NavItem {
 interface SidebarProps {
   pendingCount: number;
   pendingPackages: number;
+  newEnquiries: number;
   open: boolean;
   onNavigate: () => void;
 }
 
-export function Sidebar({ pendingCount, pendingPackages, open, onNavigate }: SidebarProps) {
+export function Sidebar({ pendingCount, pendingPackages, newEnquiries, open, onNavigate }: SidebarProps) {
   const { user, logout } = useAuth();
   const confirm = useConfirm();
 
@@ -36,6 +37,7 @@ export function Sidebar({ pendingCount, pendingPackages, open, onNavigate }: Sid
     { to: '/influencers', label: 'Influencers', icon: 'users' },
     { to: '/review', label: 'Review queue', icon: 'clock', badge: pendingCount },
     { to: '/packages', label: 'Packages', icon: 'price', badge: pendingPackages },
+    { to: '/enquiries', label: 'Enquiries', icon: 'inbox', badge: newEnquiries },
     { to: '/archived', label: 'Archived', icon: 'archive' },
     { to: '/categories', label: 'Categories', icon: 'tag' },
   ];

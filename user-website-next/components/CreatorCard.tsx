@@ -6,9 +6,10 @@ import type { Creator } from '@/lib/types';
 /**
  * The photo leads the card.
  *
- * `object-position` is biased towards the top of the frame rather than centred: these
- * are portraits cropped to a square, so the face sits in the upper half and a centred
- * crop into a wider box takes the top of the head off.
+ * The crop is anchored to the top of the image, not its centre. These are portraits
+ * squared off, so the head is already at the very top with no headroom to spare -- a
+ * centred crop into a wider box takes the top of it off. Anchoring to the top spends
+ * the whole crop on the bottom of the frame, which is torso and background.
  *
  * A creator without a photo gets the same block filled with their initials instead of
  * an empty grey rectangle, so a half-filled directory still reads as a finished grid.
@@ -29,7 +30,7 @@ function Cover({ name, src }: { name: string; src?: string }) {
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full"
-          style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
+          style={{ objectFit: 'cover', objectPosition: 'center top' }}
         />
       ) : (
         <span

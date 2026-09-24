@@ -26,3 +26,21 @@ export const LOGIN_BLOCKED_MESSAGE: Record<string, string> = {
   [STATUS.REJECTED]: 'Your influencer registration was not approved. Please contact support.',
   archived: 'Your account has been archived. Please contact support to restore access.',
 };
+
+/**
+ * A campaign enquiry from the public site.
+ *
+ * `new` is what the form creates; the other two are the admin saying what they did
+ * about it. Deliberately not reusing STATUS: an enquiry is not approved or rejected,
+ * it is contacted or closed, and sharing the enum would blur two different workflows.
+ */
+export const ENQUIRY_STATUS = {
+  NEW: 'new',
+  CONTACTED: 'contacted',
+  CLOSED: 'closed',
+} as const;
+export type EnquiryStatus = (typeof ENQUIRY_STATUS)[keyof typeof ENQUIRY_STATUS];
+export const ENQUIRY_STATUS_VALUES = Object.values(ENQUIRY_STATUS) as [
+  EnquiryStatus,
+  ...EnquiryStatus[],
+];

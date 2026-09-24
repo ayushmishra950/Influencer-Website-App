@@ -15,7 +15,7 @@ export function Layout() {
 
   useDocumentTitle();
 
-  // Drives the review-queue badge; refreshed on a slow interval so it stays honest.
+  // Drives the sidebar badges; refreshed on a slow interval so they stay honest.
   const { data: stats } = useQuery({
     queryKey: ['stats'],
     queryFn: async () => (await api.get<{ data: Stats }>('/api/admin/stats')).data.data,
@@ -40,6 +40,7 @@ export function Layout() {
       <Sidebar
         pendingCount={stats?.pending ?? 0}
         pendingPackages={stats?.pendingPackages ?? 0}
+        newEnquiries={stats?.newEnquiries ?? 0}
         open={navOpen}
         onNavigate={() => setNavOpen(false)}
       />
