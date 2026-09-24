@@ -182,7 +182,7 @@ export function ProfileView({ categories }: { categories: Category[] }) {
       {!!error && <FormError message={error} />}
 
       <section className="card flex flex-col items-center gap-3 p-6 text-center">
-        <Avatar name={profile?.name ?? '?'} src={profile?.profileImage} size={84} />
+        <Avatar name={profile?.name ?? '?'} src={profile?.profileImage} size={84} eager />
         <div>
           <h2 className="text-[20px]">{profile?.name}</h2>
           <p className="text-[13.5px]" style={{ color: 'var(--text-3)' }}>{email}</p>

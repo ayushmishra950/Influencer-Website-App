@@ -4,6 +4,8 @@
  *
  * Safe to re-run: categories and the admin are upserted, demo data is replaced.
  */
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { connectDatabase, disconnectDatabase } from '../config/db.js';
 import { env } from '../config/env.js';
 import { User } from '../models/User.js';
@@ -41,6 +43,36 @@ const DEMO = [
   ['Rohit Gupta', 'Entertainment', 'India', 'Uttar Pradesh', 'Lucknow', STATUS.APPROVED, 'Sketch comedy about small-town Indian families.'],
   ['Meera Pillai', 'Travel', 'India', 'Tamil Nadu', 'Chennai', STATUS.APPROVED, 'Solo female travel safety guides for South India.'],
 ] as const;
+
+/**
+ * Demo profile photos, by creator name.
+ *
+ * The files live in `assets/demo-profiles/`, which is committed and served under
+ * `/uploads` as a fallback (see app.ts). That is deliberate: `uploads/` is gitignored
+ * and a host like Render hands the service a fresh disk on every deploy, so a photo
+ * written there would be gone the next time it restarts -- while these rows in the
+ * database would still be pointing at it.
+ */
+const PHOTOS: Record<string, string> = {
+  'Sneha Kapoor': 'seed-sneha-kapoor.jpg',
+  'Amit Verma': 'seed-amit-verma.jpg',
+  'Rohit Gupta': 'seed-rohit-gupta.jpg',
+  'Ishita Rao': 'seed-ishita-rao.jpg',
+};
+
+/** The path the API serves a demo creator's photo at, or '' if the file is missing. */
+function photoFor(name: string): string {
+  const file = PHOTOS[name];
+  if (!file) return '';
+
+  // Same base app.ts resolves the fallback from, so both depend on cwd the same way.
+  if (!existsSync(path.resolve('assets/demo-profiles', file))) {
+    // Worth saying out loud, but not worth failing a seed over.
+    console.warn(`[seed] photo missing, leaving ${name} without one: ${file}`);
+    return '';
+  }
+  return `/uploads/${file}`;
+}
 
 async function seed(): Promise<void> {
   await connectDatabase();
@@ -101,7 +133,7 @@ async function seed(): Promise<void> {
       email,
       phone: `+9198${String(10000000 + index * 137).slice(0, 8)}`,
       bio,
-      profileImage: '',
+      profileImage: photoFor(name),
       social: { instagram: `https://instagram.com/${handle}`, youtube: `https://youtube.com/@${handle}` },
       category: categoryId,
       location: { country, state, city },

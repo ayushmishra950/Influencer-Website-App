@@ -11,9 +11,15 @@ interface AvatarProps {
    * On the hero it inverts into a light medallion instead.
    */
   onHero?: boolean;
+  /**
+   * Load the photo straight away instead of lazily. Set it for the avatars that sit
+   * above the fold -- lazy is the right default further down the page, but on the
+   * first screen it just means a row of empty circles while the rest paints.
+   */
+  eager?: boolean;
 }
 
-export function Avatar({ name, src, size = 48, onHero = false }: AvatarProps) {
+export function Avatar({ name, src, size = 48, onHero = false, eager = false }: AvatarProps) {
   const url = imageUrl(src);
   const ring = onHero
     ? { border: `${Math.max(2, Math.round(size * 0.03))}px solid rgba(255,255,255,0.92)` }
@@ -37,7 +43,8 @@ export function Avatar({ name, src, size = 48, onHero = false }: AvatarProps) {
         alt={`${name} profile photo`}
         width={size}
         height={size}
-        loading="lazy"
+        loading={eager ? 'eager' : 'lazy'}
+        fetchPriority={eager ? 'high' : undefined}
         decoding="async"
         style={{ ...base, objectFit: 'cover', background: 'var(--ink-800)' }}
       />

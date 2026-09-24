@@ -102,6 +102,16 @@ export function createApp(): Application {
   app.use(rateLimit({ windowMs: 60 * 1000, limit: 300, standardHeaders: 'draft-7', legacyHeaders: false }));
 
   app.use('/uploads', express.static(path.resolve('uploads'), { maxAge: '7d' }));
+  // The demo creators' photos, kept in the repo and served from the same path as a real
+  // upload. express.static falls through when a file is not there, so this only answers
+  // for names `uploads/` does not have. It exists because a host like Render hands the
+  // service a fresh disk on every deploy while the database it talks to keeps its rows:
+  // without this, every seeded profile would point at a photo that no longer exists.
+  app.use('/uploads', express.static(path.resolve('assets/demo-profiles'), { maxAge: '7d' }));
+  // An upload that is not there is a 404, the same way an unknown /api path is. Without
+  // this it reaches the single-page-app catch-all below and a missing image answers with
+  // the admin's HTML at status 200, which is a confusing thing to debug.
+  app.use('/uploads', notFoundHandler);
 
   app.get('/api/health', (_req, res) => {
     res.json({ success: true, service: 'aura-api', env: env.nodeEnv, time: new Date().toISOString() });

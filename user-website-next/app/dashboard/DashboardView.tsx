@@ -115,7 +115,7 @@ export function DashboardView({ stats, recent }: Props) {
     <>
       <section className="hero">
         <div className="mx-auto flex max-w-5xl flex-col items-start gap-5 px-5 py-12 sm:flex-row sm:items-center">
-          <Avatar name={profile?.name ?? '?'} src={profile?.profileImage} size={78} onHero />
+          <Avatar name={profile?.name ?? '?'} src={profile?.profileImage} size={78} onHero eager />
 
           <div className="min-w-0 flex-1">
             <p className="text-[13px]" style={{ color: 'var(--hero-muted)' }}>Welcome back</p>

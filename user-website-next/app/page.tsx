@@ -242,7 +242,7 @@ export default async function HomePage() {
               <div className="flex">
                 {spotlight.slice(0, 5).map((creator, index) => (
                   <span key={creator._id} style={{ marginLeft: index === 0 ? 0 : -14 }}>
-                    <Avatar name={creator.name} src={creator.profileImage} size={40} onHero />
+                    <Avatar name={creator.name} src={creator.profileImage} size={40} onHero eager />
                   </span>
                 ))}
               </div>

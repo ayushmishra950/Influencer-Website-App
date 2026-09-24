@@ -82,7 +82,7 @@ export default async function CreatorPage({ params }: { params: Params }) {
 
       <section className="hero">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 px-5 py-14 text-center">
-          <Avatar name={creator.name} src={creator.profileImage} size={104} onHero />
+          <Avatar name={creator.name} src={creator.profileImage} size={104} onHero eager />
 
           <div className="flex flex-col items-center gap-2">
             <h1 className="text-[30px] sm:text-[38px]">{creator.name}</h1>

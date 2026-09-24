@@ -99,14 +99,22 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
     Influencer.countDocuments(base),
     Influencer.distinct('location.city', base),
     Influencer.distinct('category', base),
-    // Newest approved creators, with enough detail to render a rich card.
+    // Newest approved creators, with enough detail to render a rich card. A wider
+    // slice than the landing page shows, because of the re-order below.
     Influencer.find(base)
       .select(PUBLIC_FIELDS)
       .populate('category', 'name slug icon')
       .sort({ createdAt: -1 })
-      .limit(8)
+      .limit(24)
       .lean(),
   ]);
+
+  // Profiles with a photo lead. A row of initials reads as an empty directory, and the
+  // newest creator is not necessarily the one worth putting a face to first. Sort is
+  // stable, so within each group the newest is still first.
+  const featured = [...spotlight]
+    .sort((a, b) => (a.profileImage ? 0 : 1) - (b.profileImage ? 0 : 1))
+    .slice(0, 8);
 
   res.json({
     success: true,
@@ -114,7 +122,7 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
       totalCreators: total,
       totalCities: cities.length,
       totalCategories: categories.length,
-      spotlight,
+      spotlight: featured,
     },
   });
 });
