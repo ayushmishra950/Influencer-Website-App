@@ -44,3 +44,31 @@ export const ENQUIRY_STATUS_VALUES = Object.values(ENQUIRY_STATUS) as [
   EnquiryStatus,
   ...EnquiryStatus[],
 ];
+
+/**
+ * A booking for one of an influencer's packages, placed from the public site.
+ *
+ * Separate from STATUS and ENQUIRY_STATUS on purpose: an order is not reviewed by an
+ * admin and not merely "contacted" -- the influencer accepts it, turns it down, or
+ * finishes the work. Three different workflows, three different vocabularies.
+ */
+export const ORDER_STATUS = {
+  NEW: 'new',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined',
+  COMPLETED: 'completed',
+} as const;
+export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
+export const ORDER_STATUS_VALUES = Object.values(ORDER_STATUS) as [OrderStatus, ...OrderStatus[]];
+
+/**
+ * What an order may become next. Anything absent is refused, so the API cannot be
+ * driven into states the UI never offers -- a completed job cannot quietly reopen.
+ */
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  [ORDER_STATUS.NEW]: [ORDER_STATUS.ACCEPTED, ORDER_STATUS.DECLINED],
+  // Work can still fall through after it is taken on.
+  [ORDER_STATUS.ACCEPTED]: [ORDER_STATUS.COMPLETED, ORDER_STATUS.DECLINED],
+  [ORDER_STATUS.DECLINED]: [],
+  [ORDER_STATUS.COMPLETED]: [],
+};

@@ -14,6 +14,7 @@ const PUBLIC_NAV = [
 
 const SIGNED_IN_NAV = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/orders', label: 'Orders' },
   { href: '/creators', label: 'Creators' },
   { href: '/about', label: 'About' },
 ] as const;

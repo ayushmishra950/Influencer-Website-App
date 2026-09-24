@@ -78,10 +78,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       void queryClient.invalidateQueries({ queryKey: ['stats'] });
     });
 
+    // The website's enquiry form writes straight into this inbox, and it is shared
+    // between admins, so both sources land here.
+    socket.on(SOCKET_EVENTS.ENQUIRY_CHANGED, () => {
+      void queryClient.invalidateQueries({ queryKey: ['enquiries'] });
+      void queryClient.invalidateQueries({ queryKey: ['stats'] });
+    });
+
     return () => {
       socket.off(SOCKET_EVENTS.NOTIFICATION_NEW);
       socket.off(SOCKET_EVENTS.INFLUENCER_CHANGED);
       socket.off(SOCKET_EVENTS.PACKAGE_CHANGED);
+      socket.off(SOCKET_EVENTS.ENQUIRY_CHANGED);
       disconnectSocket();
       setConnected(false);
     };

@@ -102,7 +102,7 @@ export async function SiteFooter() {
             © {new Date().getFullYear()} Aura · Creator Network
           </p>
           <p className="text-[12px]" style={{ color: 'var(--text-3)' }}>
-            Aura verifies profiles. It does not broker deals or take a commission.
+            Aura verifies profiles and passes requests on. It takes no payment and no commission.
           </p>
         </div>
       </div>

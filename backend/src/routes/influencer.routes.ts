@@ -10,11 +10,18 @@ import {
   listMyPackages,
   updateMyPackage,
 } from '../controllers/package.controller.js';
+import { listMyOrders, updateMyOrderStatus } from '../controllers/order.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { requireActiveInfluencer } from '../middleware/requireActiveInfluencer.js';
 import { validate } from '../middleware/validate.js';
 import { uploadAvatar } from '../middleware/upload.js';
-import { idParamSchema, packageInputSchema, updateOwnProfileSchema } from '../utils/schemas.js';
+import {
+  idParamSchema,
+  myOrderListQuerySchema,
+  orderStatusSchema,
+  packageInputSchema,
+  updateOwnProfileSchema,
+} from '../utils/schemas.js';
 import { ROLES } from '../config/constants.js';
 
 export const influencerRouter = Router();
@@ -38,3 +45,13 @@ influencerRouter
   .route('/packages/:id')
   .put(validate(idParamSchema, 'params'), validate(packageInputSchema), updateMyPackage)
   .delete(validate(idParamSchema, 'params'), deleteMyPackage);
+
+// Orders: created by brands on the public site, answered here. There is no create
+// route -- an influencer cannot book themselves.
+influencerRouter.get('/orders', validate(myOrderListQuerySchema, 'query'), listMyOrders);
+influencerRouter.patch(
+  '/orders/:id',
+  validate(idParamSchema, 'params'),
+  validate(orderStatusSchema),
+  updateMyOrderStatus,
+);

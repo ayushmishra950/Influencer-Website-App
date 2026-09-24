@@ -36,7 +36,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const title = `${category.name} Influencers & Content Creators`;
 
   const description = clampDescription(
-    `Browse ${count > 0 ? `${count} ` : ''}verified ${category.name.toLowerCase()} creators on Aura. Every profile is reviewed before listing — compare niches, cities and collaboration packages.`,
+    // pluralize, so a niche with exactly one creator does not advertise
+    // "1 verified fitness creators" in the search result.
+    `Browse ${count > 0 ? pluralize(count, `verified ${category.name.toLowerCase()} creator`) : `verified ${category.name.toLowerCase()} creators`} on Aura. Every profile is reviewed before listing — compare niches, cities and collaboration packages.`,
   );
 
   return {

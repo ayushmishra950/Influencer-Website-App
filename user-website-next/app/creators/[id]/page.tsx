@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Avatar } from '@/components/Avatar';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
+import { OrderButton } from '@/components/OrderDialog';
 import { JsonLd } from '@/components/JsonLd';
 import { fetchCreator, fetchCreatorPackages } from '@/lib/api';
 import {
@@ -167,6 +168,12 @@ export default async function CreatorPage({ params }: { params: Params }) {
                   {!!item.description && (
                     <p className="prose-body mt-3 text-[14px]">{item.description}</p>
                   )}
+
+                  {/* The card itself stays server-rendered so the title and price are in
+                      the HTML a crawler reads; only the button is a client island. */}
+                  <div className="mt-4">
+                    <OrderButton creatorId={creator._id} creatorName={creator.name} pkg={item} />
+                  </div>
                 </article>
               ))}
             </div>
@@ -197,8 +204,9 @@ export default async function CreatorPage({ params }: { params: Params }) {
           <VerifiedBadge />
           <h2 className="text-[17px]">Want to collaborate?</h2>
           <p className="prose-body max-w-sm text-[14px]">
-            Reach out through the social accounts above. Aura verifies profiles — it does not
-            broker the deal.
+            Request a package above and it goes straight to {creator.name}. You can also
+            reach them through the social accounts listed. Aura verifies profiles and passes
+            the request on — it does not take payment or negotiate on either side.
           </p>
           <Link href="/creators" className="btn btn-ghost">Browse more creators</Link>
         </section>

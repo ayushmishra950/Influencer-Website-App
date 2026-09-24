@@ -10,6 +10,7 @@ import mongoose, { Schema, type Model, type Types } from 'mongoose';
 export const NOTIFICATION_TYPES = {
   // -> admins
   INFLUENCER_REGISTERED: 'influencer.registered',
+  ENQUIRY_RECEIVED: 'enquiry.received',
   // -> the influencer
   PROFILE_APPROVED: 'profile.approved',
   PROFILE_REJECTED: 'profile.rejected',
@@ -17,6 +18,8 @@ export const NOTIFICATION_TYPES = {
   PROFILE_ARCHIVED: 'profile.archived',
   PROFILE_RESTORED: 'profile.restored',
   PROFILE_DELETED: 'profile.deleted',
+  // -> the influencer: a brand booked one of their packages
+  ORDER_RECEIVED: 'order.received',
   // packages
   PACKAGE_SUBMITTED: 'package.submitted',
   PACKAGE_APPROVED: 'package.approved',

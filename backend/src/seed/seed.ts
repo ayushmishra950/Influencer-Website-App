@@ -12,6 +12,7 @@ import { User } from '../models/User.js';
 import { Category, slugify } from '../models/Category.js';
 import { Influencer } from '../models/Influencer.js';
 import { Notification } from '../models/Notification.js';
+import { Order } from '../models/Order.js';
 import { Package } from '../models/Package.js';
 import { CREATED_BY, ROLES, STATUS } from '../config/constants.js';
 
@@ -115,6 +116,9 @@ async function seed(): Promise<void> {
   // deleteMany({}) -- real creators own packages and notifications too, and a
   // reseed must leave their data untouched.
   await Package.deleteMany({ influencer: { $in: staleInfluencerIds } });
+  // Orders belong to the influencer they were placed with, so they go the same way --
+  // otherwise a reseed leaves bookings pointing at a creator who no longer exists.
+  await Order.deleteMany({ influencer: { $in: staleInfluencerIds } });
   await User.deleteMany({ _id: { $in: staleUserIds } });
   await Influencer.deleteMany({ email: { $in: demoEmails } });
 

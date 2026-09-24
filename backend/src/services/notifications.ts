@@ -2,7 +2,13 @@ import type { Types } from 'mongoose';
 import { Notification, NOTIFICATION_TYPES, type NotificationType } from '../models/Notification.js';
 import { User } from '../models/User.js';
 import { ROLES } from '../config/constants.js';
-import { emitToUser, notifyInfluencerChanged, notifyPackageChanged } from '../realtime/socket.js';
+import {
+  emitToUser,
+  notifyEnquiryChanged,
+  notifyOrderChanged,
+  notifyInfluencerChanged,
+  notifyPackageChanged,
+} from '../realtime/socket.js';
 import {
   REVOKE_MESSAGE,
   SOCKET_EVENTS,
@@ -65,6 +71,68 @@ export async function notifyAdminsOfRegistration(params: {
   );
 
   notifyInfluencerChanged();
+}
+
+/**
+ * A campaign enquiry concerns every admin, so each gets their own row -- the same way a
+ * registration does. The stored notification is what makes it survive being offline;
+ * the socket event is what updates an inbox that is already open.
+ */
+export async function notifyAdminsOfEnquiry(params: {
+  name: string;
+  company: string;
+  budget: string;
+}): Promise<void> {
+  const admins = await User.find({ role: ROLES.ADMIN, isActive: true }).select('_id').lean();
+
+  await Promise.all(
+    admins.map((admin) =>
+      create({
+        recipient: admin._id,
+        type: NOTIFICATION_TYPES.ENQUIRY_RECEIVED,
+        title: 'New campaign enquiry',
+        body: `${params.name} from ${params.company} asked for a creator shortlist${params.budget ? ` (${params.budget})` : ''}.`,
+      }),
+    ),
+  );
+
+  notifyEnquiryChanged();
+}
+
+/**
+ * An order concerns exactly one person, so unlike a registration this fans out to
+ * nobody else. The stored notification is what survives them being offline -- the
+ * socket event is what updates a panel that is already open, and the mobile app picks
+ * the same notification up through its own bell.
+ */
+export async function notifyInfluencerOfOrder(params: {
+  userId: Types.ObjectId | string;
+  influencerId: Types.ObjectId | string;
+  influencerName: string;
+  buyerName: string;
+  buyerCompany: string;
+  packageTitle: string;
+  price: number;
+  currency: string;
+}): Promise<void> {
+  const amount = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: params.currency || 'INR',
+    maximumFractionDigits: 0,
+  }).format(params.price);
+
+  const from = params.buyerCompany || params.buyerName;
+
+  await create({
+    recipient: params.userId,
+    type: NOTIFICATION_TYPES.ORDER_RECEIVED,
+    title: 'New order',
+    body: `${from} wants to book "${params.packageTitle}" for ${amount}.`,
+    influencer: params.influencerId,
+    influencerName: params.influencerName,
+  });
+
+  notifyOrderChanged(String(params.userId));
 }
 
 const INFLUENCER_MESSAGES: Record<string, { title: string; body: (name: string) => string }> = {

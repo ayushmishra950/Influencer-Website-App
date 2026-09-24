@@ -4,6 +4,8 @@ import { getQuery } from '../middleware/validate.js';
 import { ApiError } from '../utils/ApiError.js';
 import { Enquiry, type IEnquiry } from '../models/Enquiry.js';
 import { ENQUIRY_STATUS } from '../config/constants.js';
+import { notifyAdminsOfEnquiry } from '../services/notifications.js';
+import { notifyEnquiryChanged } from '../realtime/socket.js';
 import type {
   AdminEnquiryListQuery,
   EnquiryInput,
@@ -23,7 +25,15 @@ const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]
 export const createEnquiry = asyncHandler(async (req, res) => {
   const input = req.body as EnquiryInput;
 
-  await Enquiry.create(input);
+  const enquiry = await Enquiry.create(input);
+
+  // Reaches every admin: a stored notification for the bell, and a socket event so an
+  // inbox that is already open updates without anyone pressing reload.
+  await notifyAdminsOfEnquiry({
+    name: enquiry.name,
+    company: enquiry.company,
+    budget: enquiry.budget,
+  });
 
   res.status(201).json({
     success: true,
@@ -94,11 +104,14 @@ export const updateEnquiry = asyncHandler(async (req, res) => {
 
   if (!enquiry) throw ApiError.notFound('Enquiry not found');
 
+  notifyEnquiryChanged();
   res.json({ success: true, message: 'Enquiry updated', data: enquiry });
 });
 
 export const deleteEnquiry = asyncHandler(async (req, res) => {
   const enquiry = await Enquiry.findByIdAndDelete(req.params.id);
   if (!enquiry) throw ApiError.notFound('Enquiry not found');
+
+  notifyEnquiryChanged();
   res.json({ success: true, message: 'Enquiry deleted' });
 });

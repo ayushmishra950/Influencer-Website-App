@@ -9,6 +9,8 @@ export const SOCKET_EVENTS = {
   INFLUENCER_CHANGED: 'influencer:changed',
   /** A package was submitted, edited, reviewed or deleted by anyone. */
   PACKAGE_CHANGED: 'package:changed',
+  /** An enquiry arrived from the website, or an admin acted on one. */
+  ENQUIRY_CHANGED: 'enquiry:changed',
 } as const;
 
 export interface AppNotification {

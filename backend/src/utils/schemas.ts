@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { ENQUIRY_STATUS_VALUES, STATUS_VALUES } from '../config/constants.js';
+import {
+  ENQUIRY_STATUS_VALUES,
+  ORDER_STATUS_VALUES,
+  STATUS_VALUES,
+} from '../config/constants.js';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 const handle = z.string().trim().max(120).optional().default('');
@@ -216,3 +220,33 @@ export const enquiryUpdateSchema = z
 export type EnquiryInput = z.infer<typeof enquiryInputSchema>;
 export type AdminEnquiryListQuery = z.infer<typeof adminEnquiryListQuerySchema>;
 export type EnquiryUpdateInput = z.infer<typeof enquiryUpdateSchema>;
+
+/**
+ * A brand booking a package. Public, so everything is bounded and nothing about the
+ * order itself -- price, status, which influencer -- is taken from the request body:
+ * the package id and the URL decide those, server-side.
+ */
+export const orderInputSchema = z.object({
+  packageId: objectId,
+  buyerName: z.string().trim().min(2, 'Enter your full name').max(80),
+  buyerEmail: z.string().trim().toLowerCase().email('Enter a valid email'),
+  buyerPhone: z.string().trim().min(6, 'Enter a phone number they can reach you on').max(20),
+  buyerCompany: z.string().trim().max(120).optional().default(''),
+  message: z.string().trim().max(800).optional().default(''),
+});
+
+export const myOrderListQuerySchema = z.object({
+  ...pagination,
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  status: z.enum([...ORDER_STATUS_VALUES, 'all']).optional().default('all'),
+});
+
+/** The influencer's answer. `declineReason` is their own note, never sent to the buyer. */
+export const orderStatusSchema = z.object({
+  status: z.enum(ORDER_STATUS_VALUES),
+  declineReason: z.string().trim().max(300).optional().default(''),
+});
+
+export type OrderInput = z.infer<typeof orderInputSchema>;
+export type MyOrderListQuery = z.infer<typeof myOrderListQuerySchema>;
+export type OrderStatusInput = z.infer<typeof orderStatusSchema>;

@@ -140,6 +140,7 @@ export function RegisterForm({ categories }: { categories: Category[] }) {
             </label>
             <select
               id="niche"
+              name="category"
               value={form.category}
               onChange={(event) => set('category')(event.target.value)}
               required
@@ -154,17 +155,18 @@ export function RegisterForm({ categories }: { categories: Category[] }) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <Text label="City" value={form.city} onChange={set('city')} required placeholder="e.g. Jaipur" />
-          <Text label="State" value={form.state} onChange={set('state')} required placeholder="e.g. Rajasthan" />
-          <Text label="Country" value={form.country} onChange={set('country')} required placeholder="e.g. India" />
+          <Text label="City" name="city" value={form.city} onChange={set('city')} required autoComplete="address-level2" placeholder="e.g. Jaipur" />
+          <Text label="State" name="state" value={form.state} onChange={set('state')} required autoComplete="address-level1" placeholder="e.g. Rajasthan" />
+          <Text label="Country" name="country" value={form.country} onChange={set('country')} required autoComplete="country-name" placeholder="e.g. India" />
         </div>
 
-        <Text label="Phone" value={form.phone} onChange={set('phone')} type="tel" autoComplete="tel" placeholder="Optional — for our team only" />
+        <Text label="Phone" name="phone" value={form.phone} onChange={set('phone')} type="tel" autoComplete="tel" placeholder="Optional — for our team only" />
 
         <div className="grid gap-1.5">
           <label htmlFor="bio" className="text-[13px] font-semibold">Bio</label>
           <textarea
             id="bio"
+            name="bio"
             value={form.bio}
             onChange={(event) => set('bio')(event.target.value)}
             rows={3}
@@ -175,8 +177,8 @@ export function RegisterForm({ categories }: { categories: Category[] }) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Text label="Instagram" value={form.instagram} onChange={set('instagram')} type="url" placeholder="e.g. https://instagram.com/yourname" />
-          <Text label="YouTube" value={form.youtube} onChange={set('youtube')} type="url" placeholder="e.g. https://youtube.com/@yourname" />
+          <Text label="Instagram" name="instagram" value={form.instagram} onChange={set('instagram')} type="url" autoComplete="off" placeholder="e.g. https://instagram.com/yourname" />
+          <Text label="YouTube" name="youtube" value={form.youtube} onChange={set('youtube')} type="url" autoComplete="off" placeholder="e.g. https://youtube.com/@yourname" />
         </div>
 
         <FormError message={error} />

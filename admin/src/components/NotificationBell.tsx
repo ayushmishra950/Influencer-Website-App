@@ -10,6 +10,7 @@ import type { AppNotification } from '@/lib/socket';
 /** Colour cue per event, so the list is scannable without reading every line. */
 const TONE: Record<string, { color: string; bg: string }> = {
   'influencer.registered': { color: 'var(--amber-400)', bg: 'var(--amber-bg)' },
+  'enquiry.received': { color: 'var(--violet-400)', bg: 'var(--violet-bg)' },
   'profile.approved': { color: 'var(--mint-400)', bg: 'var(--mint-bg)' },
   'profile.restored': { color: 'var(--mint-400)', bg: 'var(--mint-bg)' },
   'profile.rejected': { color: 'var(--rose-400)', bg: 'var(--rose-bg)' },
@@ -48,8 +49,10 @@ export function NotificationBell() {
   async function openNotification(item: AppNotification) {
     if (!item.read) await markRead(item._id).catch(() => undefined);
     setOpen(false);
-    // The whole point of the click: land on the influencer this is about.
-    if (item.influencer) navigate(`/influencers/${item.influencer}`);
+    // The whole point of the click: land on the thing this is about. An enquiry has no
+    // influencer to open, so it goes to the inbox it arrived in.
+    if (item.type === 'enquiry.received') navigate('/enquiries');
+    else if (item.influencer) navigate(`/influencers/${item.influencer}`);
   }
 
   return (
@@ -139,7 +142,16 @@ export function NotificationBell() {
                         background: tone.bg, color: tone.color,
                       }}
                     >
-                      <Icon name={item.type === 'influencer.registered' ? 'users' : 'edit'} size={14} />
+                      <Icon
+                        name={
+                          item.type === 'influencer.registered'
+                            ? 'users'
+                            : item.type === 'enquiry.received'
+                              ? 'inbox'
+                              : 'edit'
+                        }
+                        size={14}
+                      />
                     </span>
 
                     <span className="stack gap-1" style={{ minWidth: 0, flex: 1 }}>
@@ -152,7 +164,7 @@ export function NotificationBell() {
                       <span className="muted" style={{ fontSize: 12, lineHeight: 1.45 }}>{item.body}</span>
                       <span className="dim" style={{ fontSize: 11 }}>
                         {formatRelative(item.createdAt)}
-                        {item.influencer && ' · tap to open'}
+                        {(item.influencer || item.type === 'enquiry.received') && ' · tap to open'}
                       </span>
                     </span>
                   </button>

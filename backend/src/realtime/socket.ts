@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server as SocketServer, type Socket } from 'socket.io';
-import { env } from '../config/env.js';
+import { isOriginAllowed, selfOrigin } from '../config/cors.js';
 import { ROLES, type Role } from '../config/constants.js';
 import { User } from '../models/User.js';
 import { verifyToken } from '../utils/token.js';
@@ -18,9 +18,12 @@ let io: SocketServer | null = null;
 
 export function initSocket(httpServer: HttpServer): SocketServer {
   io = new SocketServer(httpServer, {
-    cors: {
-      origin: env.clientOrigins.length ? env.clientOrigins : true,
-      credentials: true,
+    // The same decision the REST API makes, including the same-origin allowance. A
+    // plain allowlist here refused the handshake from the very page this server
+    // serves the admin panel on, unless that address happened to be in CLIENT_ORIGINS.
+    cors: (req, callback) => {
+      const allowed = isOriginAllowed(req.headers.origin, selfOrigin(req));
+      callback(null, { origin: allowed, credentials: allowed });
     },
     // Native clients drop off mobile networks constantly; give them room to come back.
     pingTimeout: 25_000,
@@ -105,4 +108,14 @@ export function notifyPackageChanged(ownerUserId?: string | null): void {
   const payload = { at: new Date().toISOString() };
   emitToAdmins(SOCKET_EVENTS.PACKAGE_CHANGED, payload);
   if (ownerUserId) emitToUser(ownerUserId, SOCKET_EVENTS.PACKAGE_CHANGED, payload);
+}
+
+/** Tells every admin dashboard the enquiry inbox is stale, so it refetches. */
+export function notifyEnquiryChanged(): void {
+  emitToAdmins(SOCKET_EVENTS.ENQUIRY_CHANGED, { at: new Date().toISOString() });
+}
+
+/** Tells one influencer their order list is stale, on whatever device is connected. */
+export function notifyOrderChanged(userId: string): void {
+  emitToUser(userId, SOCKET_EVENTS.ORDER_CHANGED, { at: new Date().toISOString() });
 }

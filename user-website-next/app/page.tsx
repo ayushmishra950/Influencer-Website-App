@@ -91,11 +91,11 @@ const FOR_CREATORS = [
   },
   {
     title: 'No commission, ever',
-    body: 'Brands reach you through your own channels and you agree terms directly. Aura does not sit in the middle of the deal or take a cut.',
+    body: 'Brands request a package and it lands in your panel with their contact details. You agree the terms with them directly — Aura never takes payment or a cut.',
   },
   {
     title: 'Free, and yours to edit',
-    body: 'Change your bio, photo, niche, city and rates whenever you like. Updates appear in the directory immediately.',
+    body: 'Bio, photo, niche and city update the moment you save them. A new or changed rate is checked first, then goes live.',
   },
 ] as const;
 
@@ -112,8 +112,8 @@ const HOW_IT_WORKS = [
   },
   {
     step: '3',
-    title: 'Reach out directly',
-    body: 'Prices are listed where the creator has published them. You contact them through their own channels — Aura does not sit in the middle.',
+    title: 'Request a package',
+    body: 'Prices are published on the profile. Request one and it reaches the creator with your brief — or contact them through their own channels. Either way you settle terms with them.',
   },
 ] as const;
 
@@ -158,7 +158,7 @@ const FAQ = [
   {
     question: 'Does Aura take a commission?',
     answer:
-      'No. Aura verifies profiles and lists them. You contact the creator through their own channels and agree terms with them directly, with nothing in between.',
+      'No. Aura verifies profiles, lists them and passes your request on. Payment and terms are settled between you and the creator — nothing is charged here, and no cut is taken.',
   },
   {
     question: 'How long does approval take for a creator?',

@@ -61,3 +61,29 @@ export function handleFrom(url?: string): string {
 
 export const pluralize = (count: number, one: string, many = `${one}s`): string =>
   `${count} ${count === 1 ? one : many}`;
+
+const RELATIVE = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+
+const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['year', 365 * 24 * 60 * 60_000],
+  ['month', 30 * 24 * 60 * 60_000],
+  ['day', 24 * 60 * 60_000],
+  ['hour', 60 * 60_000],
+  ['minute', 60_000],
+];
+
+/**
+ * "3 hours ago". Rendered on the client only, where this is used: the server and the
+ * browser would otherwise disagree about "now" and React would report a mismatch.
+ */
+export function relativeTime(iso?: string): string {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+
+  const diff = then - Date.now();
+  for (const [unit, ms] of STEPS) {
+    if (Math.abs(diff) >= ms) return RELATIVE.format(Math.round(diff / ms), unit);
+  }
+  return 'just now';
+}

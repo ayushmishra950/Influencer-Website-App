@@ -7,6 +7,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import { env, isProd } from './config/env.js';
+import { isOriginAllowed } from './config/cors.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { authRouter } from './routes/auth.routes.js';
 import { publicRouter } from './routes/public.routes.js';
@@ -58,30 +59,13 @@ export function createApp(): Application {
     }),
   );
 
-  // Expo picks a different port whenever the default is busy, so pinning an exact
-  // localhost list makes development fail in a way that looks like a dead server.
-  // Any localhost origin is allowed in development; production stays on the allowlist.
-  const isLocalhost = (origin: string) =>
-    /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
-
   app.use(
     cors((req, callback) => {
-      const origin = req.headers.origin;
-
-      // No Origin header: native apps, curl, server-to-server.
-      if (!origin) return callback(null, { origin: true, credentials: true });
-
-      // The panel this server hosts is same-origin, but Vite marks its bundle tags
-      // `crossorigin`, so the browser sends an Origin header for them anyway. Without
-      // this the server can refuse to serve its own assets whenever CLIENT_ORIGINS is
-      // set and happens not to list the host it is reachable on.
+      // `req.protocol` honours the `trust proxy` set above, so this is the address the
+      // browser actually used, not the one the container listens on.
       const self = `${req.protocol}://${req.get('host')}`;
-      if (origin === self) return callback(null, { origin: true, credentials: true });
 
-      if (!isProd && isLocalhost(origin)) {
-        return callback(null, { origin: true, credentials: true });
-      }
-      if (!env.clientOrigins.length || env.clientOrigins.includes(origin)) {
+      if (isOriginAllowed(req.headers.origin, self)) {
         return callback(null, { origin: true, credentials: true });
       }
 

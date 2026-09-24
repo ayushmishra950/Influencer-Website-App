@@ -9,7 +9,7 @@ import { FormError } from '@/components/FormError';
 import { apiRequest, errorMessage, tokenStore } from '@/lib/client-api';
 import { deliveryLabel, formatPrice, locationLine, pluralize } from '@/lib/format';
 import { notifySessionChange } from '@/lib/session';
-import type { Creator, OwnPackage, OwnProfile, Stats } from '@/lib/types';
+import type { Creator, OrderCounts, OwnPackage, OwnProfile, Stats } from '@/lib/types';
 
 interface Props {
   /** Public, cached, and rendered on the server — the same numbers the home page uses. */
@@ -43,6 +43,7 @@ export function DashboardView({ stats, recent }: Props) {
 
   const [profile, setProfile] = useState<OwnProfile | null>(null);
   const [packages, setPackages] = useState<OwnPackage[]>([]);
+  const [orders, setOrders] = useState<OrderCounts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -57,9 +58,18 @@ export function DashboardView({ stats, recent }: Props) {
       const me = await apiRequest<{ data: { profile: OwnProfile | null } }>('/api/auth/me', { auth: true });
       setProfile(me.data.profile);
       if (me.data.profile) {
-        const list = await apiRequest<{ data: OwnPackage[] }>('/api/influencer/packages', { auth: true })
-          .catch(() => ({ data: [] as OwnPackage[] }));
+        // Both are the influencer's own; neither is worth failing the whole page over,
+        // so a miss leaves that section empty rather than showing an error.
+        const [list, counts] = await Promise.all([
+          apiRequest<{ data: OwnPackage[] }>('/api/influencer/packages', { auth: true })
+            .catch(() => ({ data: [] as OwnPackage[] })),
+          apiRequest<{ meta: { counts: OrderCounts } }>(
+            '/api/influencer/orders?status=new&limit=1',
+            { auth: true },
+          ).catch(() => null),
+        ]);
         setPackages(list.data);
+        if (counts) setOrders(counts.meta.counts);
       }
     } catch (err) {
       // A stored token the server no longer accepts is not a session.
@@ -156,6 +166,24 @@ export function DashboardView({ stats, recent }: Props) {
           <p className="prose-body mt-2 text-[14px]">{status.body}</p>
         </section>
 
+        {!!orders && orders.new > 0 && (
+          <Link
+            href="/orders"
+            className="card card-hover mt-4 flex flex-wrap items-center gap-3 p-5"
+            style={{ borderColor: 'color-mix(in srgb, var(--amber-400) 45%, transparent)' }}
+          >
+            <span className="chip" style={{ background: 'var(--amber-bg)', color: 'var(--amber-400)' }}>
+              {orders.new} waiting
+            </span>
+            <span className="min-w-0 flex-1 text-[14.5px] font-bold">
+              {pluralize(orders.new, 'brand')} asked to book your packages
+            </span>
+            <span className="text-[13.5px] font-semibold" style={{ color: 'var(--violet-400)' }}>
+              Open orders →
+            </span>
+          </Link>
+        )}
+
         <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4" aria-label="Your numbers">
           {[
             { value: packages.length, label: 'Packages', tone: 'var(--text)' },
@@ -184,9 +212,9 @@ export function DashboardView({ stats, recent }: Props) {
 
         <section className="mt-6 grid gap-4 sm:grid-cols-3" aria-label="Shortcuts">
           {[
+            { href: '/orders', title: 'Your orders', body: 'Requests brands have sent for your packages.' },
             { href: '/profile', title: 'Edit your profile', body: 'Name, niche, city, photo and channels.' },
             { href: '/profile', title: 'Add a package', body: 'What you charge, and for what. Reviewed before it goes live.' },
-            { href: '/creators', title: 'Browse the directory', body: `See all ${stats ? stats.totalCreators : ''} verified creators.` },
           ].map((card) => (
             <Link key={card.title} href={card.href} className="card card-hover p-5">
               <h3 className="text-[15.5px] font-bold">{card.title}</h3>

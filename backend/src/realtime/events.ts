@@ -14,6 +14,18 @@ export const SOCKET_EVENTS = {
    * Both sides hold a list of packages, and either side can change it.
    */
   PACKAGE_CHANGED: 'package:changed',
+  /**
+   * server -> admins: the enquiry inbox changed, refetch it.
+   *
+   * Fires when the website's form creates one, and when any admin marks, notes or
+   * deletes one -- the inbox is shared, so one admin acting has to reach the others.
+   */
+  ENQUIRY_CHANGED: 'enquiry:changed',
+  /**
+   * server -> one influencer: an order arrived, or they answered one from elsewhere.
+   * Scoped to that person's room: an order is nobody else's business.
+   */
+  ORDER_CHANGED: 'order:changed',
 } as const;
 
 /** Why a session was ended, so the login screen can explain it. */
