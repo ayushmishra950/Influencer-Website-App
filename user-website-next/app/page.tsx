@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CreatorCard } from '@/components/CreatorCard';
+import { HeroSearch } from '@/components/HeroSearch';
 import { JsonLd } from '@/components/JsonLd';
 import { RedirectSignedIn } from '@/components/RedirectSignedIn';
 import { Avatar } from '@/components/Avatar';
@@ -220,7 +221,9 @@ export default async function HomePage() {
               : 'A verified directory of content creators, reviewed one by one before they go live.'}
           </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <HeroSearch />
+
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link
               href="#enquiry"
               className="btn h-12 px-6 text-[15px]"

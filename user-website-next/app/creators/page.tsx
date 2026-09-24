@@ -5,14 +5,8 @@ import { fetchCategories, fetchCreators, fetchLocationOptions, resolveCategoryId
 import { pageOpenGraph } from '@/lib/seo';
 import { breadcrumbSchema, creatorListSchema } from '@/lib/structured-data';
 
-/**
- * What a signed-out visitor — and every crawler — is served.
- *
- * Small enough that the full directory stays a reason to sign in, large enough that the
- * page is real content rather than a wall. Every other profile is still reachable
- * through the sitemap, so nothing drops out of the index.
- */
-const PREVIEW_COUNT = 6;
+/** Matches the API's own default, so page 1 here is page 1 there. */
+const PER_PAGE = 12;
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -46,7 +40,7 @@ export async function generateMetadata(
 
   const title = 'Browse Verified Creators by Niche and City';
   const description =
-    'Browse verified creators on Aura. Every profile is reviewed by our team before listing — sign in to search the full directory by niche, state and city.';
+    'Browse every verified creator on Aura. Each profile is reviewed by our team before listing. Search by name, or filter by niche, country, state and city — no sign-in needed.';
 
   return {
     title,
@@ -62,35 +56,50 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   // The URL carries a niche slug; the API filters on the id behind it.
   const categoryId = await resolveCategoryId(first(resolved.category));
 
+  const page = Math.max(1, Number(first(resolved.page) ?? '1') || 1);
   const query = {
     q: first(resolved.q),
     category: categoryId,
     country: first(resolved.country),
     state: first(resolved.state),
     city: first(resolved.city),
-    sort: first(resolved.sort) === 'name' ? 'name' : 'recent',
-    page: first(resolved.page) ?? '1',
+    sort: first(resolved.sort) === 'name' ? ('name' as const) : ('recent' as const),
+    page: String(page),
   };
+
+  const filtered = !!(query.q || query.category || query.country || query.state || query.city);
 
   // The country is usually the only one, so default to it rather than making someone
   // pick a country before the state list will populate at all.
   const countries = await fetchLocationOptions();
   const country = query.country ?? (countries.countries.length === 1 ? countries.countries[0] : undefined);
 
-  const [categories, locations, preview] = await Promise.all([
+  const [categories, locations, results] = await Promise.all([
     fetchCategories(),
+    // Chained on purpose: a country gives its states, a state gives its cities.
     fetchLocationOptions(country, query.state),
-    // Always the unfiltered top of the list: this is the public preview, and it has to
-    // be identical for every visitor so the cached page is the one a crawler gets.
-    fetchCreators({ limit: PREVIEW_COUNT, sort: 'recent' }),
+    fetchCreators({
+      q: query.q,
+      category: query.category,
+      // Filter by the country actually in the URL, not the one defaulted in for the
+      // dropdowns -- otherwise every request would be silently scoped to one country.
+      country: query.country,
+      state: query.state,
+      city: query.city,
+      sort: query.sort,
+      page,
+      limit: PER_PAGE,
+    }),
   ]);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
-      {preview.data.length > 0 && (
+      {/* Only on the clean listing: the filtered variants are noindex, so describing
+          their contents to a crawler achieves nothing. */}
+      {!filtered && page === 1 && results.data.length > 0 && (
         <JsonLd
           data={[
-            creatorListSchema(preview.data, {
+            creatorListSchema(results.data, {
               name: 'Verified creators on Aura',
               path: '/creators',
               description: 'Verified content creators listed on Aura.',
@@ -108,11 +117,12 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
       </header>
 
       <CreatorsDirectory
-        preview={preview.data}
-        total={preview.meta.total}
+        creators={results.data}
+        meta={results.meta}
         categories={categories}
         locations={locations}
         query={query}
+        filtered={filtered}
       />
     </div>
   );

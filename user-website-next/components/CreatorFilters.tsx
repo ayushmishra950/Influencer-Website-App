@@ -61,6 +61,19 @@ export function CreatorFilters({ categories, locations }: Props) {
     ([key, value]) => value && !(key === 'sort' && value === 'recent'),
   ) || !!params.get('q');
 
+  /**
+   * The options the server sent, plus whatever the URL already selects.
+   *
+   * The locations endpoint is chained -- it only lists cities once a state is picked --
+   * so a URL carrying `?city=Jaipur` on its own would filter the results while the
+   * dropdown still read "All cities". Folding the selection in keeps the controls
+   * describing the list they actually produced.
+   */
+  const withSelected = (options: string[], current: string): string[] =>
+    current && !options.includes(current) ? [current, ...options] : options;
+
+  const cityOptions = withSelected(locations.cities, selected.city);
+
   const selectStyle = {
     background: 'var(--input-bg)',
     borderColor: 'var(--line)',
@@ -98,6 +111,22 @@ export function CreatorFilters({ categories, locations }: Props) {
           ))}
         </select>
 
+        {/* Changing the country clears the state and city with it: a city from the
+            old country would filter the list down to nothing. */}
+        <label className="sr-only" htmlFor="filter-country">Country</label>
+        <select
+          id="filter-country"
+          value={selected.country}
+          onChange={(event) => apply({ country: event.target.value, state: '', city: '' })}
+          className="h-11 rounded-xl border px-3 text-[14px]"
+          style={selectStyle}
+        >
+          <option value="">All countries</option>
+          {withSelected(locations.countries, selected.country).map((country) => (
+            <option key={country} value={country}>{country}</option>
+          ))}
+        </select>
+
         <label className="sr-only" htmlFor="filter-state">State</label>
         <select
           id="filter-state"
@@ -107,19 +136,24 @@ export function CreatorFilters({ categories, locations }: Props) {
           style={selectStyle}
         >
           <option value="">All states</option>
-          {locations.states.map((state) => <option key={state} value={state}>{state}</option>)}
+          {withSelected(locations.states, selected.state).map((state) => (
+            <option key={state} value={state}>{state}</option>
+          ))}
         </select>
 
+        {/* Cities are only listed once a state narrows them down, so say that rather
+            than offering a dropdown that silently has nothing in it. */}
         <label className="sr-only" htmlFor="filter-city">City</label>
         <select
           id="filter-city"
           value={selected.city}
+          disabled={cityOptions.length === 0}
           onChange={(event) => apply({ city: event.target.value })}
-          className="h-11 rounded-xl border px-3 text-[14px]"
+          className="h-11 rounded-xl border px-3 text-[14px] disabled:opacity-55"
           style={selectStyle}
         >
-          <option value="">All cities</option>
-          {locations.cities.map((city) => <option key={city} value={city}>{city}</option>)}
+          <option value="">{cityOptions.length === 0 ? 'Pick a state first' : 'All cities'}</option>
+          {cityOptions.map((city) => <option key={city} value={city}>{city}</option>)}
         </select>
 
         <label className="sr-only" htmlFor="filter-sort">Sort</label>
