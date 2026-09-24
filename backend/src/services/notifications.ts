@@ -54,6 +54,8 @@ export async function notifyAdminsOfRegistration(params: {
   influencerName: string;
   category: string;
   city: string;
+  /** Whether they left a question with it, so the bell says it is worth opening. */
+  hasMessage?: boolean;
 }): Promise<void> {
   const admins = await User.find({ role: ROLES.ADMIN, isActive: true }).select('_id').lean();
 
@@ -62,8 +64,8 @@ export async function notifyAdminsOfRegistration(params: {
       create({
         recipient: admin._id,
         type: NOTIFICATION_TYPES.INFLUENCER_REGISTERED,
-        title: 'New influencer registration',
-        body: `${params.influencerName} registered in ${params.category}${params.city ? ` from ${params.city}` : ''} and is waiting for review.`,
+        title: params.hasMessage ? 'New registration, with a message' : 'New influencer registration',
+        body: `${params.influencerName} registered in ${params.category}${params.city ? ` from ${params.city}` : ''} and is waiting for review.${params.hasMessage ? ' They left a message for the team.' : ''}`,
         influencer: params.influencerId,
         influencerName: params.influencerName,
       }),

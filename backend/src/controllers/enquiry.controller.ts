@@ -8,6 +8,7 @@ import { notifyAdminsOfEnquiry } from '../services/notifications.js';
 import { notifyEnquiryChanged } from '../realtime/socket.js';
 import type {
   AdminEnquiryListQuery,
+  BriefListQuery,
   EnquiryInput,
   EnquiryUpdateInput,
 } from '../utils/schemas.js';
@@ -38,6 +39,52 @@ export const createEnquiry = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: 'Thanks — your brief has reached our team.',
+  });
+});
+
+/**
+ * The public briefs board.
+ *
+ * `select` is an allowlist, not an exclusion list: the sender's name, company, email,
+ * phone and website must never leave this server, and a field added to the model later
+ * must not start appearing here by accident.
+ */
+export const listPublicBriefs = asyncHandler(async (req, res) => {
+  const query = getQuery<BriefListQuery>(req);
+  const skip = (query.page - 1) * query.limit;
+
+  // Published is not enough: an enquiry that named no niche, no city and wrote no brief
+  // has nothing to tell a creator, and would render as an empty card. Older enquiries
+  // pre-date these fields entirely, so this also keeps them off the board.
+  const filter = {
+    isPublished: true,
+    $or: [
+      { niche: { $nin: ['', null] } },
+      { city: { $nin: ['', null] } },
+      { brief: { $nin: ['', null] } },
+    ],
+  };
+
+  const [items, total] = await Promise.all([
+    Enquiry.find(filter)
+      .select('who budget niche city brief createdAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit)
+      .lean(),
+    Enquiry.countDocuments(filter),
+  ]);
+
+  res.json({
+    success: true,
+    data: items,
+    meta: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / query.limit)),
+      hasMore: skip + items.length < total,
+    },
   });
 });
 
@@ -93,6 +140,9 @@ export const updateEnquiry = asyncHandler(async (req, res) => {
   const update: Partial<IEnquiry> = {
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.note !== undefined ? { note: input.note } : {}),
+    ...(input.isPublished !== undefined
+      ? { isPublished: input.isPublished, publishedAt: input.isPublished ? new Date() : null }
+      : {}),
     handledBy: req.user!._id,
     handledAt: new Date(),
   };

@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { CreatorCard } from '@/components/CreatorCard';
+import { ShareProfile } from '@/components/ShareProfile';
 import { FormError } from '@/components/FormError';
 import { apiRequest, errorMessage, tokenStore } from '@/lib/client-api';
-import { deliveryLabel, formatPrice, locationLine, pluralize } from '@/lib/format';
+import { compactNumber, deliveryLabel, formatPrice, locationLine, pluralize } from '@/lib/format';
 import { notifySessionChange } from '@/lib/session';
 import type { Creator, OrderCounts, OwnPackage, OwnProfile, Stats } from '@/lib/types';
 
@@ -120,6 +121,9 @@ export function DashboardView({ stats, recent }: Props) {
   ].filter(Boolean) as string[];
 
   const firstName = (profile?.name ?? '').split(' ')[0] || 'there';
+  // Read from the browser rather than an env var, so the copied link always matches the
+  // host this panel is actually being used on.
+  const siteUrl = typeof window === 'undefined' ? '' : window.location.origin;
 
   return (
     <>
@@ -186,10 +190,11 @@ export function DashboardView({ stats, recent }: Props) {
 
         <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4" aria-label="Your numbers">
           {[
+            // Views first: it is the one number that answers "is this working?".
+            { value: compactNumber(profile?.profileViews) || '0', label: 'Profile views', tone: 'var(--violet-400)' },
             { value: packages.length, label: 'Packages', tone: 'var(--text)' },
             { value: live, label: 'Live', tone: 'var(--mint-400)' },
-            { value: reviewing, label: 'Under review', tone: 'var(--amber-400)' },
-            { value: rejected, label: 'Not approved', tone: 'var(--rose-400)' },
+            { value: reviewing + rejected, label: 'Awaiting / rejected', tone: 'var(--amber-400)' },
           ].map((tile) => (
             <div key={tile.label} className="card px-4 py-5">
               <p className="text-[28px] font-bold" style={{ color: tile.tone }}>{tile.value}</p>
@@ -206,6 +211,20 @@ export function DashboardView({ stats, recent }: Props) {
             </p>
             <div className="mt-4">
               <Link href="/profile" className="btn btn-primary h-9 px-4 text-[13.5px]">Complete it</Link>
+            </div>
+          </section>
+        )}
+
+        {isPublic && !!profile && (
+          <section className="card mt-6 p-6">
+            <h2 className="text-[17px]">Share your profile</h2>
+            <p className="prose-body mt-1.5 text-[14px]">
+              Put this link where brands already find you — your Instagram bio, your media
+              kit, your email signature. It shows your niche, city, channels and rates in
+              one page, with the verified badge on it.
+            </p>
+            <div className="mt-4">
+              <ShareProfile url={`${siteUrl}/creators/${profile._id}`} />
             </div>
           </section>
         )}

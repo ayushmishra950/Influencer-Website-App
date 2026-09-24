@@ -4,11 +4,11 @@ import { notFound } from 'next/navigation';
 import { Avatar } from '@/components/Avatar';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { OrderButton } from '@/components/OrderDialog';
+import { ProfileViewPing } from '@/components/ProfileViewPing';
 import { JsonLd } from '@/components/JsonLd';
 import { fetchCreator, fetchCreatorPackages } from '@/lib/api';
 import {
-  deliveryLabel, formatPrice, fullDate, handleFrom, locationLine, shortLocation,
-} from '@/lib/format';
+  deliveryLabel, formatPrice, fullDate, handleFrom, locationLine, shortLocation, compactNumber } from '@/lib/format';
 import { clampDescription, pageOpenGraph } from '@/lib/seo';
 import { breadcrumbSchema, creatorProfileSchema } from '@/lib/structured-data';
 
@@ -64,12 +64,28 @@ export default async function CreatorPage({ params }: { params: Params }) {
 
   const place = locationLine(creator.location);
   const socials = [
-    { label: 'Instagram', url: creator.social?.instagram, handle: handleFrom(creator.social?.instagram) },
-    { label: 'YouTube', url: creator.social?.youtube, handle: handleFrom(creator.social?.youtube) },
+    {
+      label: 'Instagram',
+      url: creator.social?.instagram,
+      handle: handleFrom(creator.social?.instagram),
+      // Followers the creator declared, not a number pulled from any API -- the label
+      // next to it says so, because a claimed figure presented as a fact is a lie.
+      followers: compactNumber(creator.audience?.instagram),
+      unit: 'followers',
+    },
+    {
+      label: 'YouTube',
+      url: creator.social?.youtube,
+      handle: handleFrom(creator.social?.youtube),
+      followers: compactNumber(creator.audience?.youtube),
+      unit: 'subscribers',
+    },
   ].filter((item) => !!item.url);
 
   return (
     <>
+      <ProfileViewPing creatorId={creator._id} />
+
       <JsonLd
         data={[
           creatorProfileSchema(creator, packages),
@@ -131,7 +147,18 @@ export default async function CreatorPage({ params }: { params: Params }) {
                     className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-[14px]"
                     style={{ background: 'var(--ink-800)' }}
                   >
-                    <span className="font-semibold">{social.label}</span>
+                    <span className="font-semibold">
+                      {social.label}
+                      {!!social.followers && (
+                        <span
+                          className="ml-2 text-[12.5px] font-normal"
+                          style={{ color: 'var(--text-3)' }}
+                          title={`${social.followers} ${social.unit}, as declared by the creator`}
+                        >
+                          {social.followers} {social.unit} (self-reported)
+                        </span>
+                      )}
+                    </span>
                     <span style={{ color: 'var(--violet-400)' }}>{social.handle}</span>
                   </a>
                 </li>

@@ -4,24 +4,27 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Wordmark } from './Brand';
+import { ContactDialog } from './ContactDialog';
 import { ThemeToggle } from './ThemeToggle';
 import { useSession } from '@/lib/session';
 
 const PUBLIC_NAV = [
   { href: '/creators', label: 'Creators' },
+  { href: '/briefs', label: 'Briefs' },
   { href: '/about', label: 'About' },
 ] as const;
 
 const SIGNED_IN_NAV = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/orders', label: 'Orders' },
+  { href: '/briefs', label: 'Briefs' },
   { href: '/creators', label: 'Creators' },
-  { href: '/about', label: 'About' },
 ] as const;
 
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const { signedIn } = useSession();
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
@@ -72,6 +75,16 @@ export function SiteHeader() {
               <Link href="/register" className="btn btn-primary h-9 px-4 text-[13.5px]">
                 Join
               </Link>
+              {/* Ghost rather than a second filled button: next to Join, two solid
+                  violet buttons would compete for the same glance. Hidden on phones,
+                  where the same action sits in the menu. */}
+              <button
+                type="button"
+                onClick={() => setContactOpen(true)}
+                className="btn btn-ghost hidden h-9 px-4 text-[13.5px] sm:inline-flex"
+              >
+                Contact
+              </button>
             </>
           )}
 
@@ -107,9 +120,23 @@ export function SiteHeader() {
                 </Link>
               </li>
             ))}
+            {!signedIn && (
+              <li>
+                <button
+                  type="button"
+                  onClick={() => { setOpen(false); setContactOpen(true); }}
+                  className="block w-full rounded-lg px-3 py-2.5 text-left text-[14.5px] font-semibold"
+                  style={{ color: 'var(--text-2)' }}
+                >
+                  Contact
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       )}
+
+      <ContactDialog open={contactOpen} onClose={() => setContactOpen(false)} />
     </header>
   );
 }

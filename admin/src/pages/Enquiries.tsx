@@ -163,8 +163,9 @@ export function EnquiriesPage() {
                     <span className="stack gap-1" style={{ minWidth: 0 }}>
                       <strong style={{ fontSize: 14.5 }}>{enquiry.company}</strong>
                       <span className="dim" style={{ fontSize: 12.5 }}>
-                        {enquiry.name} · {enquiry.who}
-                        {enquiry.budget ? ` · ${enquiry.budget}` : ''}
+                        {[enquiry.name, enquiry.who, enquiry.budget, enquiry.niche, enquiry.city]
+                          .filter(Boolean)
+                          .join(' · ')}
                       </span>
                     </span>
 
@@ -177,6 +178,21 @@ export function EnquiriesPage() {
                   </div>
 
                   <ContactRow enquiry={enquiry} />
+
+                  {!!enquiry.brief && (
+                    <p
+                      style={{
+                        margin: 0,
+                        padding: '10px 12px',
+                        borderRadius: 'var(--r-md)',
+                        background: 'var(--ink-800)',
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      {enquiry.brief}
+                    </p>
+                  )}
 
                   {!!enquiry.note && (
                     <p
@@ -238,6 +254,24 @@ export function EnquiriesPage() {
                       }}
                     >
                       <Icon name="edit" size={14} /> {enquiry.note ? 'Edit note' : 'Add note'}
+                    </button>
+
+                    {/* Nothing on this platform is public until a person says so, and a
+                        brief is no different -- it stays off the board until published. */}
+                    <button
+                      className={enquiry.isPublished ? 'btn btn-success btn-sm' : 'btn btn-ghost btn-sm'}
+                      disabled={busy}
+                      title={
+                        enquiry.isPublished
+                          ? 'Visible to creators on the public briefs board'
+                          : 'Shows the niche, city, budget and brief to creators. Name, company and contact details are never shown.'
+                      }
+                      onClick={() =>
+                        update.mutate({ id: enquiry._id, isPublished: !enquiry.isPublished })
+                      }
+                    >
+                      <Icon name={enquiry.isPublished ? 'eye' : 'eyeOff'} size={14} />
+                      {enquiry.isPublished ? 'On the board' : 'Publish to board'}
                     </button>
 
                     <span className="grow" />

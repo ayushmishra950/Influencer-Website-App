@@ -13,6 +13,18 @@ export const socialSchema = z.object({
   youtube: handle,
 });
 
+/**
+ * Self-reported follower counts. Coerced because a form sends strings, and capped well
+ * above any real account so a mistyped number cannot render as a billion. 0 is "not
+ * given", which is how every reader treats it.
+ */
+const followerCount = z.coerce.number().int().min(0).max(5_000_000_000).optional().default(0);
+
+export const audienceSchema = z.object({
+  instagram: followerCount,
+  youtube: followerCount,
+});
+
 export const locationSchema = z.object({
   country: z.string().trim().min(2, 'Country is required').max(60),
   state: z.string().trim().min(1, 'State is required').max(60),
@@ -27,6 +39,9 @@ export const registerSchema = z.object({
   bio: z.string().trim().max(600).optional().default(''),
   profileImage: z.string().trim().optional().default(''),
   social: socialSchema.optional().default({ instagram: '', youtube: '' }),
+  audience: audienceSchema.optional().default({ instagram: 0, youtube: 0 }),
+  /** A question, doubt or suggestion left while signing up. Seen only by the team. */
+  message: z.string().trim().max(1000).optional().default(''),
   category: objectId,
   location: locationSchema,
 });
@@ -63,6 +78,7 @@ export const updateOwnProfileSchema = z.object({
   bio: z.string().trim().max(600).optional(),
   profileImage: z.string().trim().optional(),
   social: socialSchema.optional(),
+  audience: audienceSchema.optional(),
   category: objectId.optional(),
   location: locationSchema.optional(),
 });
@@ -193,6 +209,10 @@ export type SortKey = PublicListQuery['sort'];
 export const enquiryInputSchema = z.object({
   who: z.string().trim().min(1, 'Tell us who you are').max(40),
   budget: z.string().trim().max(40).optional().default(''),
+  // The only parts a creator may ever read, and the only reason the board is useful.
+  niche: z.string().trim().max(60).optional().default(''),
+  city: z.string().trim().max(60).optional().default(''),
+  brief: z.string().trim().max(600).optional().default(''),
   name: z.string().trim().min(2, 'Enter your full name').max(80),
   email: z.string().trim().toLowerCase().email('Enter a valid work email'),
   phone: z.string().trim().min(6, 'Enter a phone number we can reach you on').max(20),
@@ -212,10 +232,13 @@ export const enquiryUpdateSchema = z
   .object({
     status: z.enum(ENQUIRY_STATUS_VALUES).optional(),
     note: z.string().trim().max(600).optional(),
+    /** Publishing is an admin decision, the same as every other thing that goes public. */
+    isPublished: z.boolean().optional(),
   })
-  .refine((d) => d.status !== undefined || d.note !== undefined, {
-    message: 'Nothing to update',
-  });
+  .refine(
+    (d) => d.status !== undefined || d.note !== undefined || d.isPublished !== undefined,
+    { message: 'Nothing to update' },
+  );
 
 export type EnquiryInput = z.infer<typeof enquiryInputSchema>;
 export type AdminEnquiryListQuery = z.infer<typeof adminEnquiryListQuerySchema>;
@@ -250,3 +273,11 @@ export const orderStatusSchema = z.object({
 export type OrderInput = z.infer<typeof orderInputSchema>;
 export type MyOrderListQuery = z.infer<typeof myOrderListQuerySchema>;
 export type OrderStatusInput = z.infer<typeof orderStatusSchema>;
+
+/** The public briefs board. Read-only, and never paged deeply. */
+export const briefListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(50).optional().default(20),
+});
+
+export type BriefListQuery = z.infer<typeof briefListQuerySchema>;

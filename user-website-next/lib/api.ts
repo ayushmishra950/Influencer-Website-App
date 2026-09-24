@@ -1,5 +1,6 @@
+import { slugify } from './format';
 import type {
-  Category, Creator, LocationOptions, Paged, PublicPackage, Stats,
+  Brief, Category, Creator, LocationOptions, Paged, PublicPackage, Stats,
 } from './types';
 
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5050').replace(/\/$/, '');
@@ -146,4 +147,37 @@ export function imageUrl(path?: string): string {
   if (!path) return '';
   if (/^https?:\/\//.test(path)) return path;
   return `${API_URL}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+/** Briefs an admin has published for creators to read. Never carries contact details. */
+export async function fetchBriefs(limit = 20): Promise<Brief[]> {
+  return getOr<Brief[]>(`/api/public/briefs?limit=${limit}`, []);
+}
+
+/**
+ * Every city that has a listed creator, with the slug its page lives at.
+ *
+ * Derived from the creators rather than the locations endpoint, which is chained and
+ * cannot hand back every city in one call. The directory is small enough that one pass
+ * is cheaper than asking per state.
+ */
+export async function fetchCities(): Promise<{ name: string; slug: string; count: number }[]> {
+  const { data } = await fetchCreators({ limit: 100, sort: 'recent' });
+
+  const counts = new Map<string, number>();
+  for (const creator of data) {
+    const city = creator.location?.city?.trim();
+    if (city) counts.set(city, (counts.get(city) ?? 0) + 1);
+  }
+
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, slug: slugify(name), count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/** A city slug back to the name the API filters on, or null if nobody is listed there. */
+export async function resolveCity(slug?: string): Promise<{ name: string; count: number } | null> {
+  if (!slug) return null;
+  const match = (await fetchCities()).find((city) => city.slug === slug);
+  return match ? { name: match.name, count: match.count } : null;
 }

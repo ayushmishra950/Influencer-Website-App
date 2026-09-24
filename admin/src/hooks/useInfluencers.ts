@@ -274,6 +274,7 @@ export function useUpdateEnquiry() {
       id: string;
       status?: EnquiryStatus;
       note?: string;
+      isPublished?: boolean;
     }) => (await api.patch<{ message: string }>(`/api/admin/enquiries/${id}`, payload)).data.message,
     onSuccess: (message) => {
       refresh();

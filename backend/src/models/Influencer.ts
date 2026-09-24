@@ -13,6 +13,19 @@ export interface ISocial {
   youtube: string;
 }
 
+/**
+ * Self-reported audience size, per platform.
+ *
+ * Declared by the creator, not pulled from any API -- the badge on this site means a
+ * person checked the accounts, not that a number was machine-verified, and the UI says
+ * so wherever these are shown. 0 means "not given" rather than "no followers", which is
+ * why every reader treats it as absent.
+ */
+export interface IAudience {
+  instagram: number;
+  youtube: number;
+}
+
 export interface ILocation {
   country: string;
   state: string;
@@ -28,6 +41,7 @@ export interface IInfluencer {
   profileImage: string;
   bio: string;
   social: ISocial;
+  audience: IAudience;
   category: Types.ObjectId;
   location: ILocation;
   status: Status;
@@ -37,6 +51,17 @@ export interface IInfluencer {
   isArchived: boolean;
   archivedAt: Date | null;
   createdBy: CreatedBy;
+  /**
+   * What the person wrote when they signed up -- a question, a suggestion, anything.
+   *
+   * Lives on the profile rather than in its own collection because it always belongs to
+   * exactly one account: the form that collects it is the one that creates the account,
+   * and an admin reading it is deciding about that person. A separate inbox would make
+   * them match the two up by email by hand.
+   */
+  message: string;
+  /** How many times the public profile has been opened. Never resets. */
+  profileViews: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +93,12 @@ const influencerSchema = new Schema<IInfluencer, InfluencerModel, Record<string,
       youtube: { type: String, trim: true, default: '' },
     },
 
+    // Capped well above any real account so a typo cannot render as a billion.
+    audience: {
+      instagram: { type: Number, min: 0, max: 5_000_000_000, default: 0 },
+      youtube: { type: Number, min: 0, max: 5_000_000_000, default: 0 },
+    },
+
     // --- Category (master data) ---
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true, index: true },
 
@@ -89,6 +120,13 @@ const influencerSchema = new Schema<IInfluencer, InfluencerModel, Record<string,
     archivedAt: { type: Date, default: null },
 
     createdBy: { type: String, enum: CREATED_BY_VALUES, default: CREATED_BY.SELF },
+
+    // Never public: this is between the person and the team reviewing them.
+    message: { type: String, trim: true, maxlength: 1000, default: '' },
+
+    // Incremented by the public profile page. Not indexed: it is read one record at a
+    // time on a dashboard, never sorted or filtered on.
+    profileViews: { type: Number, min: 0, default: 0 },
   },
   { timestamps: true },
 );

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { fetchCategories, fetchCreators } from '@/lib/api';
+import { fetchCategories, fetchCities, fetchCreators } from '@/lib/api';
 import { absoluteUrl } from '@/lib/seo';
 
 /** The API caps a page at 100, so the sitemap walks rather than asking for everything. */
@@ -24,13 +24,18 @@ async function everyCreator() {
  * budget arguing with itself.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, creators] = await Promise.all([fetchCategories(), everyCreator()]);
+  const [categories, creators, cities] = await Promise.all([
+    fetchCategories(),
+    everyCreator(),
+    fetchCities(),
+  ]);
 
   const now = new Date();
 
   const core: MetadataRoute.Sitemap = [
     { url: absoluteUrl('/'), lastModified: now, changeFrequency: 'daily', priority: 1 },
     { url: absoluteUrl('/creators'), lastModified: now, changeFrequency: 'daily', priority: 0.9 },
+    { url: absoluteUrl('/briefs'), lastModified: now, changeFrequency: 'daily', priority: 0.8 },
     { url: absoluteUrl('/about'), lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: absoluteUrl('/register'), lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   ];
@@ -45,6 +50,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
+  // Same reasoning as the niches: a city with nobody in it 404s, so it is never listed.
+  const places: MetadataRoute.Sitemap = cities.map((city) => ({
+    url: absoluteUrl(`/city/${city.slug}`),
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
   const profiles: MetadataRoute.Sitemap = creators.map((creator) => ({
     url: absoluteUrl(`/creators/${creator._id}`),
     // The profile's own timestamp, so a crawler can tell what actually changed.
@@ -53,5 +66,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...core, ...niches, ...profiles];
+  return [...core, ...niches, ...places, ...profiles];
 }

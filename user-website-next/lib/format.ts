@@ -87,3 +87,23 @@ export function relativeTime(iso?: string): string {
   }
   return 'just now';
 }
+
+/**
+ * "12.4K", "1.2M". For follower counts, where the exact figure is noise and the order
+ * of magnitude is the whole signal.
+ */
+export function compactNumber(value?: number): string {
+  if (!value || !Number.isFinite(value) || value <= 0) return '';
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`;
+  return String(value);
+}
+
+/** Matches the backend's category slugs, so a city URL reads the same way a niche does. */
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}

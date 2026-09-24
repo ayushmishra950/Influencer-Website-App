@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { listPublicPackages } from '../controllers/package.controller.js';
-import { createEnquiry } from '../controllers/enquiry.controller.js';
+import { createEnquiry, listPublicBriefs } from '../controllers/enquiry.controller.js';
 import { createOrder } from '../controllers/order.controller.js';
 import {
+  countProfileView,
   getInfluencer,
   getPublicStats,
   listCategories,
@@ -12,6 +13,7 @@ import {
 } from '../controllers/public.controller.js';
 import { validate } from '../middleware/validate.js';
 import {
+  briefListQuerySchema,
   enquiryInputSchema,
   idParamSchema,
   orderInputSchema,
@@ -47,6 +49,9 @@ publicRouter.get('/influencers/:id/packages', validate(idParamSchema, 'params'),
 publicRouter.get('/categories', listCategories);
 publicRouter.get('/stats', getPublicStats);
 publicRouter.get('/locations', listLocations);
+
+// Briefs an admin has chosen to show creators. Contact details are never included.
+publicRouter.get('/briefs', validate(briefListQuerySchema, 'query'), listPublicBriefs);
 publicRouter.post('/enquiries', writeLimiter('enquiries'), validate(enquiryInputSchema), createEnquiry);
 
 // Booking a package. The influencer is in the path; the package, and with it the
@@ -57,4 +62,14 @@ publicRouter.post(
   validate(idParamSchema, 'params'),
   validate(orderInputSchema),
   createOrder,
+);
+
+// A view ping from an opened profile. Its own limiter: it is unauthenticated and
+// fires on every page load, so it needs far more headroom than a form, and still a
+// ceiling so the counter cannot be inflated by holding down refresh.
+publicRouter.post(
+  '/influencers/:id/view',
+  rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-7', legacyHeaders: false }),
+  validate(idParamSchema, 'params'),
+  countProfileView,
 );

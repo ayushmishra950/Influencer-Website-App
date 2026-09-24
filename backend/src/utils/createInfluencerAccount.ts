@@ -14,6 +14,9 @@ export interface CreateAccountInput {
   bio?: string;
   profileImage?: string;
   social?: { instagram: string; youtube: string };
+  audience?: { instagram: number; youtube: number };
+  /** Free text left at signup, for the reviewer. */
+  message?: string;
   category: string;
   location: { country: string; state: string; city: string };
   status: Status;
@@ -58,6 +61,8 @@ export async function createInfluencerAccount(
       bio: input.bio ?? '',
       profileImage: input.profileImage ?? '',
       social: input.social ?? { instagram: '', youtube: '' },
+      audience: input.audience ?? { instagram: 0, youtube: 0 },
+      message: input.message ?? '',
       category: input.category,
       location: input.location,
       status: input.status,

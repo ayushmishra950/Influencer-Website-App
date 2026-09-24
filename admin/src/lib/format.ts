@@ -64,3 +64,14 @@ export function formatPrice(amount: number, currency = 'INR'): string {
 
 export const pluralize = (count: number, singular: string, plural = `${singular}s`): string =>
   `${count} ${count === 1 ? singular : plural}`;
+
+/**
+ * "12.4K", "1.2M". For follower counts, where the exact figure is noise and the order
+ * of magnitude is the whole signal.
+ */
+export function compactNumber(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '0';
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K`;
+  return String(value);
+}

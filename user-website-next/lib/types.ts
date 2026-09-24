@@ -20,6 +20,8 @@ export interface Creator {
   profileImage: string;
   bio: string;
   social: { instagram?: string; youtube?: string };
+  /** Self-reported follower counts. Absent, or 0, both mean "not given". */
+  audience?: { instagram?: number; youtube?: number };
   category: Category | null;
   location: Location;
   createdAt: string;
@@ -82,6 +84,9 @@ export interface OwnProfile {
   category?: Category | null;
   location?: Location;
   social?: { instagram?: string; youtube?: string };
+  audience?: { instagram?: number; youtube?: number };
+  /** How many times the public profile has been opened. Own-profile only. */
+  profileViews?: number;
   createdAt?: string;
 }
 
@@ -121,3 +126,19 @@ export interface Order {
 }
 
 export type OrderCounts = Record<OrderStatus, number>;
+
+/**
+ * A campaign brief an admin has chosen to show creators.
+ *
+ * Deliberately has no contact details, no name and no company: the API never sends
+ * them, and this type exists partly to make that impossible to forget.
+ */
+export interface Brief {
+  _id: string;
+  who: string;
+  budget: string;
+  niche: string;
+  city: string;
+  brief: string;
+  createdAt: string;
+}

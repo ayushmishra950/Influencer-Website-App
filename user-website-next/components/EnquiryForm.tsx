@@ -23,6 +23,11 @@ const EMPTY = {
   email: '',
   company: '',
   website: '',
+  // These three are the only parts a creator may ever see, on the public briefs board,
+  // and only after an admin publishes it. Everything above stays private either way.
+  niche: '',
+  city: '',
+  brief: '',
 };
 
 type Form = typeof EMPTY;
@@ -155,6 +160,9 @@ export function EnquiryForm() {
           phone: form.phone.trim(),
           company: form.company.trim(),
           website: form.website.trim(),
+          niche: form.niche.trim(),
+          city: form.city.trim(),
+          brief: form.brief.trim(),
         },
       });
       setSent(response.message ?? 'Thanks — your brief has reached our team.');
@@ -213,6 +221,29 @@ export function EnquiryForm() {
       </div>
 
       <Field label="Website" name="website" value={form.website} onChange={set('website')} type="url" autoComplete="url" placeholder="https://yourwebsite.com" />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Creator niche you need" name="niche" value={form.niche} onChange={set('niche')} autoComplete="off" placeholder="e.g. Beauty, Fitness, Food" />
+        <Field label="City" name="city" value={form.city} onChange={set('city')} autoComplete="address-level2" placeholder="e.g. Jaipur" />
+      </div>
+
+      <label className="grid gap-1.5">
+        <span className="text-[13px] font-semibold">What do you need?</span>
+        <textarea
+          name="brief"
+          rows={3}
+          maxLength={600}
+          value={form.brief}
+          onChange={(event) => set('brief')(event.target.value)}
+          placeholder="Deliverables, dates, where it will run — the more specific, the better the shortlist."
+          className="input h-auto py-3"
+        />
+        {/* Said plainly, because it decides what people are willing to type here. */}
+        <span className="text-[12px]" style={{ color: 'var(--text-3)' }}>
+          This part may be shown to creators on our public briefs board, without your
+          name, company or contact details. Everything else stays private.
+        </span>
+      </label>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-[12.5px]" style={{ color: 'var(--text-3)' }}>

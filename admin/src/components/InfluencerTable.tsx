@@ -87,7 +87,20 @@ export function InfluencerTable({
                   <Link to={`/influencers/${influencer._id}`} className="row gap-3">
                     <Avatar name={influencer.name} src={influencer.profileImage} size={36} />
                     <span className="stack" style={{ minWidth: 0, lineHeight: 1.4 }}>
-                      <strong className="truncate" style={{ fontSize: 13.5 }}>{influencer.name}</strong>
+                      <strong className="row gap-2" style={{ fontSize: 13.5 }}>
+                        <span className="truncate">{influencer.name}</span>
+                        {/* Flagged in the list, so a question is not found only by
+                            opening every pending row one at a time. */}
+                        {!!influencer.message && (
+                          <span
+                            className="pill pill-pending"
+                            title="Left a message when signing up"
+                            style={{ flexShrink: 0 }}
+                          >
+                            message
+                          </span>
+                        )}
+                      </strong>
                       <span className="dim truncate" style={{ fontSize: 12, maxWidth: 220 }}>
                         {influencer.email}
                       </span>

@@ -111,6 +111,11 @@ export function EditProfileDialog({ open, profile, categories, onClose, onSaved 
             city: form.city.trim(),
           },
           social: { instagram: form.instagram.trim(), youtube: form.youtube.trim() },
+          // Digits only, so "12,400" and "12.4k" do not silently become something else.
+          audience: {
+            instagram: Number(form.instagramFollowers.replace(/\D/g, '')) || 0,
+            youtube: Number(form.youtubeFollowers.replace(/\D/g, '')) || 0,
+          },
         },
       });
       onSaved(data);
@@ -177,7 +182,27 @@ export function EditProfileDialog({ open, profile, categories, onClose, onSaved 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Instagram" value={form.instagram} onChange={set('instagram')} type="url" />
           <Field label="YouTube" value={form.youtube} onChange={set('youtube')} type="url" />
+          <Field
+            label="Instagram followers"
+            value={form.instagramFollowers}
+            onChange={set('instagramFollowers')}
+            inputMode="numeric"
+            placeholder="e.g. 24000"
+          />
+          <Field
+            label="YouTube subscribers"
+            value={form.youtubeFollowers}
+            onChange={set('youtubeFollowers')}
+            inputMode="numeric"
+            placeholder="e.g. 8000"
+          />
         </div>
+
+        <p className="text-[12px]" style={{ color: 'var(--text-3)' }}>
+          Follower counts are shown on your profile marked &ldquo;self-reported&rdquo;. Our
+          team opens your accounts when reviewing, so keep them honest — it is the number
+          brands decide on.
+        </p>
 
         <FormError message={error} />
 
@@ -204,5 +229,8 @@ function toForm(profile: OwnProfile) {
     city: profile.location?.city ?? '',
     instagram: profile.social?.instagram ?? '',
     youtube: profile.social?.youtube ?? '',
+    // Kept as strings so an empty box stays empty rather than showing a 0 to type around.
+    instagramFollowers: profile.audience?.instagram ? String(profile.audience.instagram) : '',
+    youtubeFollowers: profile.audience?.youtube ? String(profile.audience.youtube) : '',
   };
 }

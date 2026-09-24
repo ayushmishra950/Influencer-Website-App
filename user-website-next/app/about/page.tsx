@@ -41,6 +41,10 @@ const FOR_CREATORS = [
     body: 'Edit your bio, photo, niche and location whenever you like. Changes appear in the directory immediately.',
   },
   {
+    title: 'Brands book you here',
+    body: 'Publish what you charge, and a brand can request a package straight from your profile. It lands in your panel with their brief and contact details — you accept it or turn it down, and settle terms with them. Aura never takes payment or a cut.',
+  },
+  {
     title: 'You always know where you stand',
     body: 'Approved, under review or not approved — you see the status and the reason, and you are notified the moment it changes.',
   },
@@ -49,14 +53,17 @@ const FOR_CREATORS = [
 const STEPS = [
   { step: '1', title: 'Register', body: 'Add your details, niche, location and social accounts.' },
   { step: '2', title: 'Review', body: 'Our team checks your accounts. Registration is not activation.' },
-  { step: '3', title: 'Go live', body: 'Once approved you can sign in and brands can find you.' },
+  { step: '3', title: 'Go live', body: 'Once approved you can sign in, publish your rates, and brands can find and book you.' },
 ] as const;
 
 function Section({ title, items }: { title: string; items: readonly { title: string; body: string }[] }) {
+  // Columns follow the count, so four cards do not leave one stranded on its own row.
+  const columns = items.length % 3 === 0 ? 'sm:grid-cols-3' : 'sm:grid-cols-2';
+
   return (
     <section>
       <h2 className="text-[22px] sm:text-[26px]">{title}</h2>
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      <div className={`mt-5 grid gap-4 ${columns}`}>
         {items.map((item) => (
           <div key={item.title} className="card p-5">
             <h3 className="text-[15.5px] font-bold">{item.title}</h3>
@@ -145,9 +152,10 @@ export default async function AboutPage() {
         <section className="card p-6 sm:p-8">
           <h2 className="text-[20px]">What we show, and what we don&apos;t</h2>
           <p className="prose-body mt-3 text-[14.5px]">
-            A public profile shows a creator&apos;s name, photo, bio, niche, city and social
-            accounts. Email addresses, phone numbers and review notes are never public — they
-            stay between the creator and our team.
+            A public profile shows a creator&apos;s name, photo, bio, niche, city, social
+            accounts, the follower counts they declare and the rates they publish. Email
+            addresses, phone numbers and review notes are never public — they stay between
+            the creator and our team. An order a brand places is seen only by that creator.
           </p>
         </section>
 

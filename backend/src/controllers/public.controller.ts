@@ -7,7 +7,7 @@ import { getQuery } from '../middleware/validate.js';
 import { directorySort } from '../utils/sort.js';
 import type { PublicListQuery } from '../utils/schemas.js';
 
-const PUBLIC_FIELDS = 'name profileImage bio social category location createdAt';
+const PUBLIC_FIELDS = 'name profileImage bio social audience category location createdAt';
 
 /** Escapes user input before it becomes part of a RegExp. */
 const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -155,4 +155,23 @@ export const listLocations = asyncHandler(async (req, res) => {
       cities: cities.sort(),
     },
   });
+});
+
+/**
+ * Counts one opening of a public profile.
+ *
+ * Its own endpoint rather than a counter bumped while rendering, because the profile
+ * page is cached: a render does not happen per visitor, so counting there would report
+ * a fraction of the truth. Fire-and-forget by design -- the caller ignores the reply,
+ * and a miss costs a view, not a page.
+ */
+export const countProfileView = asyncHandler(async (req, res) => {
+  // Scoped to publicly listed creators, so a view cannot be recorded against an
+  // archived or unapproved profile nobody can actually see.
+  await Influencer.updateOne(
+    { _id: req.params.id, ...Influencer.publicFilter() },
+    { $inc: { profileViews: 1 } },
+  );
+
+  res.status(204).end();
 });

@@ -64,6 +64,9 @@ export async function SiteFooter() {
           </h2>
           <ul className="mt-3.5 grid gap-2.5 text-[13.5px]" style={{ color: 'var(--text-2)' }}>
             <li>
+              <Link href="/briefs" className="hover:underline">Open briefs from brands</Link>
+            </li>
+            <li>
               <Link href="/about" className="hover:underline">What Aura is</Link>
             </li>
             {/* Invitations, not navigation: pointless once you have an account, and this

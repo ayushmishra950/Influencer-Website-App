@@ -31,6 +31,7 @@ export const register = asyncHandler(async (req, res) => {
       influencerName: profile.name,
       category: category?.name ?? 'an unlisted category',
       city: profile.location?.city ?? '',
+      hasMessage: !!profile.message,
     });
   } catch (err) {
     console.error('[notify] registration notification failed:', err);

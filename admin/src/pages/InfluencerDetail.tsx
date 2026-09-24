@@ -14,7 +14,7 @@ import {
   confirmReject,
   confirmRestore,
 } from '@/lib/confirmations';
-import { formatDate, locationLine, socialUrl } from '@/lib/format';
+import { formatDate, locationLine, socialUrl, compactNumber } from '@/lib/format';
 
 function DetailRow({ icon, label, children }: { icon: IconName; label: string; children: React.ReactNode }) {
   return (
@@ -137,6 +137,36 @@ export function InfluencerDetailPage() {
               <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.65 }}>{influencer.bio}</p>
             )}
 
+            {/* What they asked when signing up. Called out on its own, and never public —
+                this is a question waiting for an answer, not part of their profile. */}
+            {!!influencer.message && (
+              <div
+                className="stack gap-1"
+                style={{
+                  marginTop: 12,
+                  padding: '12px 14px',
+                  borderRadius: 'var(--r-md)',
+                  background: 'var(--amber-bg)',
+                  borderLeft: '3px solid var(--amber-400)',
+                  // The card around this is centred for the avatar and name; a
+                  // paragraph of someone's writing should not be.
+                  textAlign: 'left',
+                }}
+              >
+                <strong style={{ fontSize: 12, color: 'var(--amber-400)' }}>
+                  Message from this creator
+                </strong>
+                <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6 }}>{influencer.message}</p>
+                <a
+                  className="btn btn-subtle btn-sm"
+                  style={{ alignSelf: 'flex-start', marginTop: 4 }}
+                  href={`mailto:${influencer.email}?subject=${encodeURIComponent('Re: your message to Aura')}`}
+                >
+                  <Icon name="mail" size={14} /> Reply by email
+                </a>
+              </div>
+            )}
+
             <div className="row gap-2" style={{ justifyContent: 'center' }}>
               {instagram && (
                 <a className="btn btn-ghost btn-sm" href={instagram} target="_blank" rel="noreferrer noopener">
@@ -149,6 +179,23 @@ export function InfluencerDetailPage() {
                 </a>
               )}
               {!instagram && !youtube && <span className="dim" style={{ fontSize: 12.5 }}>No social links added</span>}
+
+              {/* Self-reported, and labelled as such: the point of showing it here is
+                  that a reviewer can open the accounts above and check it. */}
+              {(!!influencer.audience?.instagram || !!influencer.audience?.youtube) && (
+                <span className="row wrap gap-2" style={{ width: '100%', marginTop: 4 }}>
+                  {!!influencer.audience?.instagram && (
+                    <span className="pill pill-archived" title="Self-reported by the creator">
+                      IG {compactNumber(influencer.audience.instagram)} followers (claimed)
+                    </span>
+                  )}
+                  {!!influencer.audience?.youtube && (
+                    <span className="pill pill-archived" title="Self-reported by the creator">
+                      YT {compactNumber(influencer.audience.youtube)} subscribers (claimed)
+                    </span>
+                  )}
+                </span>
+              )}
             </div>
           </section>
 

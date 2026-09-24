@@ -23,6 +23,12 @@ export interface Social {
   youtube: string;
 }
 
+/** Self-reported follower counts. 0 (or absent) means "not given". */
+export interface Audience {
+  instagram: number;
+  youtube: number;
+}
+
 export interface Influencer {
   _id: string;
   user: string | null;
@@ -32,6 +38,7 @@ export interface Influencer {
   profileImage: string;
   bio: string;
   social: Social;
+  audience?: Audience;
   category: Category | null;
   location: Location;
   status: Status;
@@ -41,6 +48,9 @@ export interface Influencer {
   isArchived: boolean;
   archivedAt: string | null;
   createdBy: 'self' | 'admin';
+  /** What they wrote when signing up. Never shown publicly. */
+  message?: string;
+  profileViews?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -126,12 +136,24 @@ export interface Enquiry {
   _id: string;
   who: string;
   budget: string;
+  niche: string;
+  city: string;
+  brief: string;
   name: string;
   email: string;
   phone: string;
   company: string;
   website: string;
   status: EnquiryStatus;
+  /**
+   * Whether it appears on the public briefs board. Off until an admin says so.
+   *
+   * Optional because enquiries stored before the briefs board existed carry no such
+   * field at all — absent and false mean the same thing, and every reader treats them
+   * that way rather than assuming the key is there.
+   */
+  isPublished?: boolean;
+  publishedAt?: string | null;
   note: string;
   handledBy: { _id: string; name: string } | null;
   handledAt: string | null;

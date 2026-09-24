@@ -10,7 +10,7 @@ import { ReachEstimator } from '@/components/ReachEstimator';
 import { StickyCta } from '@/components/StickyCta';
 import { NicheMarquee } from '@/components/NicheMarquee';
 import { fetchCategories, fetchCreators, fetchStats } from '@/lib/api';
-import { pluralize } from '@/lib/format';
+import { pluralize, slugify } from '@/lib/format';
 import { pageOpenGraph } from '@/lib/seo';
 import { faqSchema, organizationSchema, websiteSchema } from '@/lib/structured-data';
 
@@ -414,16 +414,18 @@ export default async function HomePage() {
             <p className="prose-body mt-1.5 text-[13.5px]">
               Where the creators currently listed are based.
             </p>
-            {/* Plain text, not links: a per-city URL would be a filtered listing, and
-                those are deliberately kept out of the index. */}
+            {/* Links now: each city has its own indexable page, which is what people
+                actually search for ("influencers in Jaipur"). */}
             <ul className="mt-4 flex flex-wrap gap-2">
               {cities.map((city) => (
-                <li
-                  key={city}
-                  className="chip"
-                  style={{ background: 'var(--ink-800)', color: 'var(--text-2)' }}
-                >
-                  {city}
+                <li key={city}>
+                  <Link
+                    href={`/city/${slugify(city)}`}
+                    className="chip"
+                    style={{ background: 'var(--ink-800)', color: 'var(--text-2)' }}
+                  >
+                    {city}
+                  </Link>
                 </li>
               ))}
             </ul>
